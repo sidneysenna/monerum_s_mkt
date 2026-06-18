@@ -20,7 +20,24 @@ Fonte de dados existente:
 sindicatos_br.sindicatos
 ```
 
-Esta tabela ja existe e deve ser tratada como somente leitura pelo modulo de leads. Nao criar migration para ela, nao recriar e nao alterar sua estrutura.
+Esta tabela ja existe e deve ser tratada como somente leitura pelo modulo `sindicatos`. Nao criar migration para ela, nao recriar e nao alterar sua estrutura.
+
+## Mapeamento Prisma
+
+O model Prisma `Sindicato` mapeia a tabela existente:
+
+```prisma
+@@map("sindicatos")
+@@schema("sindicatos_br")
+```
+
+O comando permitido para atualizar o client e:
+
+```bash
+pnpm prisma generate
+```
+
+Nao executar migrations, `db push`, `migrate reset` ou `migrate resolve`.
 
 ## Estrutura de referencia
 
@@ -36,7 +53,7 @@ Consultas futuras devem:
 
 - parametrizar filtros;
 - evitar concatenacao direta de strings com dados externos;
-- permitir SQL raw apenas quando necessario e seguro;
+- permitir SQL raw apenas quando necessario, parametrizado e seguro;
 - nunca alterar `sindicatos_br.sindicatos`;
 - nunca tocar no schema `public`.
 

@@ -1,15 +1,54 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["sindicatos_br"]
 }
 
 // Schema permitido: sindicatos_br.
 // Schema proibido: public.
 //
-// A tabela existente sindicatos_br.sindicatos sera mapeada em etapa futura,
-// com revisao explicita e sem criar migration para ela.
+// A tabela existente sindicatos_br.sindicatos e mapeada abaixo somente para leitura.
 // Nao rodar migrate, db push ou migrate reset nesta etapa.
+
+model Sindicato {
+  id                        Int       @id @default(autoincrement())
+  cnpj                      String?   @db.VarChar(20)
+  cadastro                  String?   @db.VarChar(50)
+  grau                      String?   @db.VarChar(100)
+  denominacao               String?
+  codigoSindicalCompleto    String?   @map("codigo_sindical_completo") @db.VarChar(25)
+  federacao                 String?
+  confederacao              String?
+  centralSindical           String?   @map("central_sindical")
+  funcionamentoDaDirecao    String?   @map("funcionamento_da_direcao") @db.VarChar(100)
+  numTotalDirigentesEleitos Int?      @map("num_total_dirigentes_eleitos")
+  numVotosChapaVencedora    Int?      @map("num_votos_chapa_vencedora")
+  formaDeEleicao            String?   @map("forma_de_eleicao") @db.VarChar(100)
+  numChapas                 Int?      @map("num_chapas")
+  colegioEleitoral          Int?      @map("colegio_eleitoral")
+  totalVotantes             Int?      @map("total_votantes")
+  areaGeoeconomica          String?   @map("area_geoeconomica") @db.VarChar(50)
+  grupo                     String?   @db.VarChar(50)
+  classe                    String?   @db.VarChar(100)
+  categoria                 String?
+  logradouro                String?
+  complemento               String?
+  numero                    String?   @db.VarChar(50)
+  bairro                    String?
+  cep                       String?   @db.VarChar(15)
+  localidadeSede            String?   @map("localidade_sede") @db.VarChar(150)
+  ufSede                    String?   @map("uf_sede") @db.VarChar(2)
+  email                     String?
+  telefone1                 String?   @db.VarChar(30)
+  inicioMandato             DateTime? @map("inicio_mandato") @db.Date
+  fimMandato                DateTime? @map("fim_mandato") @db.Date
+  nomePresidente            String?   @map("nome_presidente")
+
+  @@map("sindicatos")
+  @@schema("sindicatos_br")
+}

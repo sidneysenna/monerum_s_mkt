@@ -2,7 +2,7 @@
 
 API HTTP planejada para apoiar uma futura ferramenta de envio de e-mail em massa para leads armazenados em PostgreSQL.
 
-Esta etapa cria a entrada HTTP versionada em `/v1` e o primeiro endpoint de health check. Ainda nao ha envio real, migrations, consulta de leads ou fluxo funcional de campanha.
+Esta etapa configura a entrada HTTP versionada em `/api/v1`, conexao Prisma e leitura inicial da tabela existente `sindicatos_br.sindicatos`. Ainda nao ha envio real, migrations ou fluxo funcional de campanha.
 
 ## Objetivo
 
@@ -20,13 +20,14 @@ Preparar uma API NestJS com TypeScript, Prisma, PostgreSQL, Mailgun e templates 
 Versao inicial da API:
 
 ```txt
-/v1
+/api/v1
 ```
 
-Endpoint disponivel:
+Endpoints disponiveis:
 
 ```txt
-GET /v1/health
+GET /api/v1/health
+GET /api/v1/sindicatos
 ```
 
 Resposta esperada:
@@ -44,13 +45,15 @@ Resposta esperada:
 
 ```bash
 pnpm install
+pnpm prisma generate
 pnpm start:dev
 ```
 
 Teste manual:
 
 ```txt
-http://localhost:3000/v1/health
+http://localhost:3000/api/v1/health
+http://localhost:3000/api/v1/sindicatos?uf=MG&limit=10
 ```
 
 ## Scripts operacionais
@@ -91,6 +94,7 @@ src/
     campanhas/
     emails/
     health/
+    sindicatos/
     templates/
 .codex/
 ```
@@ -116,6 +120,7 @@ Regras absolutas:
 - nao criar migration para `sindicatos_br.sindicatos`;
 - nao recriar nem alterar a estrutura de `sindicatos_br.sindicatos`;
 - tratar `sindicatos_br.sindicatos` como fonte existente e somente leitura.
+- o model Prisma `Sindicato` usa `@@map("sindicatos")` e `@@schema("sindicatos_br")`.
 
 ## Arquitetura planejada
 
@@ -132,10 +137,12 @@ src/
     leads/
     campanhas/
     emails/
+    health/
+    sindicatos/
     templates/
 ```
 
-Os modulos devem separar dominio, aplicacao, infraestrutura e apresentacao. A entrada principal agora e API HTTP versionada em `/v1`, mantendo scripts como apoio operacional futuro.
+Os modulos devem separar dominio, aplicacao, infraestrutura e apresentacao. A entrada principal agora e API HTTP versionada em `/api/v1`, mantendo scripts como apoio operacional futuro.
 
 ## Variaveis de ambiente previstas
 
@@ -179,13 +186,13 @@ Envio real nao esta implementado e devera ser bloqueado por padrao em ambiente l
 
 ## Fases futuras
 
-1. Mapear com seguranca a leitura da tabela existente `sindicatos_br.sindicatos`.
+1. Criar filtros mais completos de segmentacao de leads.
 2. Modelar entidades futuras de campanhas sem tocar na tabela existente de sindicatos.
 3. Desenhar cliente Mailgun com `fetch`, ainda sem envio real por padrao.
 4. Criar motor de templates HTML/TXT.
-5. Criar fluxo de campanha por scripts, preview e dry-run.
+5. Criar fluxo de campanha por API/scripts, preview e dry-run.
 6. Criar testes e validacoes de seguranca.
 
 ## Aviso
 
-Esta etapa e scaffold inicial, documentacao e regras de seguranca. Nenhum e-mail sera enviado por este projeto nesta fase e nenhuma migration foi criada.
+Esta etapa e leitura inicial segura, documentacao e regras de seguranca. Nenhum e-mail sera enviado por este projeto nesta fase e nenhuma migration foi criada.

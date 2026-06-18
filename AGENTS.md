@@ -2,22 +2,22 @@
 
 Regras principais para agentes e assistentes neste repositorio:
 
-1. O projeto e uma API HTTP NestJS versionada em `/v1`.
-2. O primeiro endpoint e `GET /v1/health`.
-3. Nao usar schema `public`.
+1. A API e prefixada em `/api/v1`.
+2. Nunca colocar `/api/v1` diretamente nos controllers.
+3. Prefixo global deve ficar no `main.ts`.
 4. Usar somente schema `sindicatos_br`.
-5. Nao alterar `sindicatos_br.sindicatos`.
-6. Nao criar migration sem solicitacao explicita.
-7. Nao implementar envio real de e-mail sem solicitacao explicita.
-8. Mailgun futuro deve usar `fetch` nativo, nao `axios`.
-9. Usar pnpm.
-10. Manter arquitetura modular.
-11. Nao commitar `.env`.
-12. Nao vazar segredos em logs.
-13. Toda query raw deve ser parametrizada.
-14. Toda campanha futura deve suportar dry-run.
-15. Envio real deve exigir confirmacao e flags explicitas.
+5. Nao usar schema `public`.
+6. Nao alterar `sindicatos_br.sindicatos`.
+7. Nao criar migration para tabela existente.
+8. Para mapear tabela existente, usar Prisma model com `@@map` e `@@schema`.
+9. Rodar apenas `pnpm prisma generate` para atualizar Prisma Client.
+10. Nao rodar migrate, db push, migrate reset ou migrate resolve.
+11. Queries raw somente parametrizadas.
+12. Nao implementar envio real de e-mail nesta etapa.
+13. Mailgun futuro deve usar `fetch` nativo, nao `axios`.
+14. Usar pnpm.
+15. Manter arquitetura modular.
 
 ## Estado atual
 
-Modo atual: API HTTP inicial versionada. Apenas `GET /v1/health` esta disponivel; nao implementar campanhas, leitura de leads, migrations ou envio real de e-mail sem solicitacao explicita.
+Modo atual: API HTTP versionada em `/api/v1`, com `GET /api/v1/health` e leitura inicial `GET /api/v1/sindicatos`. Nao criar migrations, nao alterar a tabela existente e nao implementar envio real de e-mail.

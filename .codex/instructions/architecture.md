@@ -33,12 +33,13 @@ src/
 
 ## Camada de entrada
 
-A entrada principal agora e API HTTP versionada com prefixo global `/v1`.
+A entrada principal agora e API HTTP versionada com prefixo global `/api/v1`.
 
-Endpoint inicial:
+Endpoints iniciais:
 
 ```txt
-GET /v1/health
+GET /api/v1/health
+GET /api/v1/sindicatos
 ```
 
 Nao criar endpoints de campanha, envio ou leads nesta etapa.
@@ -46,6 +47,7 @@ Nao criar endpoints de campanha, envio ou leads nesta etapa.
 ## Modulos planejados
 
 - `health`: health check basico da API.
+- `sindicatos`: leitura inicial da tabela existente `sindicatos_br.sindicatos`.
 - `leads`: consulta somente leitura da tabela existente `sindicatos_br.sindicatos`.
 - `campanhas`: desenho de campanhas, destinatarios, eventos, status, erros e tentativas.
 - `emails`: contrato `EmailProvider` e futura implementacao `MailgunEmailProvider`.
