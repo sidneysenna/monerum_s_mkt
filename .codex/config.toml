@@ -1,0 +1,62 @@
+project_name = "monerum_s_mkt"
+mode = "architecture-only"
+execution_model = "internal-scripts"
+package_manager = "pnpm"
+
+stack = [
+  "NestJS",
+  "TypeScript",
+  "Prisma",
+  "PostgreSQL",
+  "Mailgun",
+  "HTML templates",
+  "TXT templates",
+  "Node.js native fetch"
+]
+
+[commands]
+allowed_now = [
+  "pnpm --version",
+  "node --version",
+  "ls",
+  "pwd",
+  "mkdir",
+  "cat"
+]
+future_examples = [
+  "pnpm script:preview-campanha",
+  "pnpm script:validar-leads",
+  "pnpm script:dry-run-campanha",
+  "pnpm script:executar-campanha"
+]
+forbidden_now = [
+  "pnpm install",
+  "pnpm prisma migrate dev",
+  "pnpm prisma migrate reset",
+  "pnpm prisma db push",
+  "pnpm start",
+  "pnpm test"
+]
+
+[database]
+allowed_schema = "sindicatos_br"
+forbidden_schema = "public"
+existing_leads_table = "sindicatos_br.sindicatos"
+leads_table_policy = "read-only-existing-table"
+migrations_for_existing_leads_table = false
+
+[mailgun]
+provider = "Mailgun"
+http_client = "native fetch"
+forbidden_clients = ["axios"]
+endpoint = "/messages"
+body_type = "application/x-www-form-urlencoded"
+real_send_default = false
+require_explicit_confirmation = true
+
+[security]
+commit_env_files = false
+log_secrets = false
+public_schema_allowed = false
+http_controllers_now = false
+functional_implementation_now = false
