@@ -1,12 +1,12 @@
 # Task 01: criar fundacao
 
-Objetivo futuro: criar fundacao NestJS com TypeScript, Prisma configurado para `sindicatos_br` e execucao por scripts.
+Objetivo: criar fundacao NestJS com TypeScript, Prisma configurado para `sindicatos_br` e API HTTP versionada em `/v1`.
 
 Limites:
 
 - sem envio real;
-- sem endpoints HTTP;
+- apenas endpoint `GET /v1/health`;
 - sem alterar `sindicatos_br.sindicatos`;
 - sem usar `public`.
 
-Status: nao executada.
+Status: executada parcialmente com scaffold inicial e health check.

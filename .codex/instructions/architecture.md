@@ -1,6 +1,6 @@
 # Arquitetura
 
-A arquitetura planejada e modular, com separacao entre dominio, aplicacao, infraestrutura e scripts.
+A arquitetura planejada e modular, com separacao entre dominio, aplicacao, infraestrutura, apresentacao e scripts operacionais futuros.
 
 ## Estrutura futura sugerida
 
@@ -24,6 +24,7 @@ src/
     infrastructure/
     utils/
   modules/
+    health/
     leads/
     campanhas/
     emails/
@@ -32,10 +33,19 @@ src/
 
 ## Camada de entrada
 
-A entrada inicial deve ser por scripts e command runners. Nao criar controllers HTTP nesta etapa.
+A entrada principal agora e API HTTP versionada com prefixo global `/v1`.
+
+Endpoint inicial:
+
+```txt
+GET /v1/health
+```
+
+Nao criar endpoints de campanha, envio ou leads nesta etapa.
 
 ## Modulos planejados
 
+- `health`: health check basico da API.
 - `leads`: consulta somente leitura da tabela existente `sindicatos_br.sindicatos`.
 - `campanhas`: desenho de campanhas, destinatarios, eventos, status, erros e tentativas.
 - `emails`: contrato `EmailProvider` e futura implementacao `MailgunEmailProvider`.

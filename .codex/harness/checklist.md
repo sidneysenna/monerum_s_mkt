@@ -4,6 +4,8 @@ Antes de qualquer implementacao futura:
 
 - [ ] Ler `AGENTS.md`.
 - [ ] Confirmar fase atual do projeto.
+- [ ] Confirmar que a API usa prefixo global `/v1`.
+- [ ] Confirmar que apenas endpoints solicitados foram criados.
 - [ ] Confirmar que a tarefa nao usa `public`.
 - [ ] Confirmar que `sindicatos_br.sindicatos` nao sera alterada.
 - [ ] Confirmar que nao havera envio real sem autorizacao.

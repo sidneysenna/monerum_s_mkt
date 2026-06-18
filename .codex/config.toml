@@ -1,6 +1,6 @@
 project_name = "monerum_s_mkt"
-mode = "architecture-only"
-execution_model = "internal-scripts"
+mode = "versioned-http-api"
+execution_model = "http-api-v1-with-future-scripts"
 package_manager = "pnpm"
 
 stack = [
@@ -21,7 +21,10 @@ allowed_now = [
   "ls",
   "pwd",
   "mkdir",
-  "cat"
+  "cat",
+  "pnpm build",
+  "pnpm test",
+  "pnpm start:dev"
 ]
 future_examples = [
   "pnpm script:preview-campanha",
@@ -30,7 +33,6 @@ future_examples = [
   "pnpm script:executar-campanha"
 ]
 forbidden_now = [
-  "pnpm install",
   "pnpm prisma migrate dev",
   "pnpm prisma migrate reset",
   "pnpm prisma db push",
@@ -58,5 +60,10 @@ require_explicit_confirmation = true
 commit_env_files = false
 log_secrets = false
 public_schema_allowed = false
-http_controllers_now = false
+http_controllers_now = true
 functional_implementation_now = false
+
+[api]
+enabled = true
+version_prefix = "v1"
+first_endpoint = "GET /v1/health"

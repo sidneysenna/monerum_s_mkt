@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Schema permitido: sindicatos_br.
+// Schema proibido: public.
+//
+// A tabela existente sindicatos_br.sindicatos sera mapeada em etapa futura,
+// com revisao explicita e sem criar migration para ela.
+// Nao rodar migrate, db push ou migrate reset nesta etapa.

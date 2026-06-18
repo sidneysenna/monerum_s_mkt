@@ -1,8 +1,8 @@
 # Projeto
 
-`monerum_s_mkt` e uma base tecnica para uma futura ferramenta de campanhas de e-mail em massa usando leads de sindicatos armazenados em PostgreSQL.
+`monerum_s_mkt` e uma API HTTP NestJS versionada para uma futura ferramenta de campanhas de e-mail em massa usando leads de sindicatos armazenados em PostgreSQL.
 
-Nesta etapa o objetivo e documentar arquitetura, regras de seguranca, fluxos esperados e padroes para implementacao futura. Nao criar funcionalidades executaveis.
+Nesta etapa a entrada principal e HTTP com prefixo global `/v1`. O unico endpoint implementado e `GET /v1/health`.
 
 ## Escopo futuro
 
@@ -13,12 +13,12 @@ Nesta etapa o objetivo e documentar arquitetura, regras de seguranca, fluxos esp
 - Registrar campanha, destinatario, status, eventos, erros e tentativas.
 - Evitar duplicidade e reenvio indevido.
 - Operar por scripts internos com preview, dry-run e confirmacao explicita.
+- Expor endpoints HTTP versionados para fluxos futuros.
 
 ## Fora do escopo atual
 
 - Implementacao funcional.
 - Envio real de e-mail.
 - Migrations.
-- Endpoints HTTP.
-- Controllers NestJS.
+- Endpoints alem de `GET /v1/health`.
 - Alteracoes na tabela existente de sindicatos.

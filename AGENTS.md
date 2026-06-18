@@ -2,24 +2,22 @@
 
 Regras principais para agentes e assistentes neste repositorio:
 
-1. Usar pnpm para comandos do projeto.
-2. Usar NestJS com TypeScript.
-3. O projeto sera executado inicialmente via script.
-4. Nao criar controllers HTTP nesta etapa.
-5. Nao usar schema `public`.
-6. Usar somente schema `sindicatos_br`.
-7. Nao implementar envio real nesta fase.
-8. Nao usar axios para Mailgun.
-9. Planejar Mailgun com `fetch` nativo.
-10. Nao criar migrations para a tabela existente `sindicatos_br.sindicatos`.
-11. Nao alterar a tabela existente de sindicatos.
-12. Criar documentacao clara para futuras fases.
-13. Separar dominio, aplicacao, infraestrutura e scripts.
-14. Nao vazar segredos em logs.
-15. Nao commitar `.env`.
-16. Criar e respeitar arquivos de instrucao Codex na pasta `.codex`.
+1. O projeto e uma API HTTP NestJS versionada em `/v1`.
+2. O primeiro endpoint e `GET /v1/health`.
+3. Nao usar schema `public`.
+4. Usar somente schema `sindicatos_br`.
+5. Nao alterar `sindicatos_br.sindicatos`.
+6. Nao criar migration sem solicitacao explicita.
+7. Nao implementar envio real de e-mail sem solicitacao explicita.
+8. Mailgun futuro deve usar `fetch` nativo, nao `axios`.
+9. Usar pnpm.
+10. Manter arquitetura modular.
+11. Nao commitar `.env`.
+12. Nao vazar segredos em logs.
+13. Toda query raw deve ser parametrizada.
+14. Toda campanha futura deve suportar dry-run.
+15. Envio real deve exigir confirmacao e flags explicitas.
 
 ## Estado atual
 
-Modo atual: arquitetura somente. Nao implementar funcionalidades, migrations, endpoints HTTP, envio real de e-mail ou scripts executaveis.
-
+Modo atual: API HTTP inicial versionada. Apenas `GET /v1/health` esta disponivel; nao implementar campanhas, leitura de leads, migrations ou envio real de e-mail sem solicitacao explicita.
