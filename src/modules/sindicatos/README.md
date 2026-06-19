@@ -11,6 +11,7 @@ GET /api/v1/sindicatos
 Regras:
 
 - leitura somente;
+- aplicar sempre `grupo = 'Trabalhador'`;
 - retornar apenas campos resumidos;
 - filtrar apenas registros com e-mail nao nulo e nao vazio;
 - nao criar migration;

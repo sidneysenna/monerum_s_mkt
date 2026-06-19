@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta Sindicato Digital</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #001f3f; /* Azul escuro da logo */
+            padding: 30px;
+            text-align: center;
+        }
+        .header img {
+            max-width: 220px;
+            height: auto;
+        }
+        .content {
+            padding: 40px 30px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #001f3f;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+        .intro {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 25px;
+        }
+        .feature-box {
+            background: #f9fbfc;
+            border-left: 4px solid #0056b3;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 0 4px 4px 0;
+        }
+        .feature-title {
+            font-weight: bold;
+            color: #0056b3;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .pricing-table {
+            width: 100%;
+            background: #001f3f;
+            color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .pricing-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .price-item {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .price-sub {
+            font-size: 14px;
+            opacity: 0.8;
+            font-weight: normal;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+        .footer {
+            background: #f4f7f9;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid #eee;
+        }
+        .highlight {
+            color: #0056b3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header com Logo -->
+        <div class="header">
+            <!-- Substituir pelo Base64 gerado -->
+            <img src="http://monerum.com.br/asets/logo-suprema.png" alt="Suprema Algoritmos">
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="content">
+			<h1><strong>{{NOME_SINDICATO}}</strong></h1>
+			
+            <h1>Olá, Presidente {{NOME_PRESIDENTE}}</h1>
+            
+            <p class="intro">
+                As recentes mudanças nas leis trabalhistas trouxeram um grande desafio para os sindicatos: como manter uma comunicação eficiente com a base e garantir a sustentabilidade financeira de forma moderna, atraente e 100% voluntária?
+            </p>
+
+            <p>Para resolver esses gargalos, desenvolvemos o projeto <strong>Sindicato Digital</strong>, uma solução inovadora que opera inteiramente dentro do WhatsApp.</p>
+
+            <div class="feature-box">
+                <span class="feature-title">1. Atendimento de Qualidade 24h (Gratuito)</span>
+                Uma Inteligência Artificial treinada com as suas Convenções Coletivas (CCT) responde instantaneamente às dúvidas dos profissionais sobre escalas, pisos e adicionais. Além disso, faz a triagem automatizada de denúncias para o seu jurídico.
+            </div>
+
+            <div class="feature-box">
+                <span class="feature-title">2. Controle Absoluto de Benefícios</span>
+                Automatizamos o controle de uso e validade via QR Code no celular do trabalhador. Se ainda não possui um clube de vantagens, nossa estrutura permite cadastrar parceiros locais e criar um do zero.
+            </div>
+
+            <div class="feature-box">
+                <span class="feature-title">3. Arrecadação Inteligente via Pix</span>
+                O profissional realiza a adesão anual opcional direto no chat. O sistema recebe via Pix, emite a Chave de Acesso Digital e gerencia as renovações de forma 100% automatizada.
+            </div>
+			
+			<div class="feature-box">
+                <span class="feature-title">4. O sindicato define o valor da adesão ao clube e garante receita recorrente</span>
+                Exemplo: Adesão de R$ 200,00/ano. Com 1000 membros o sindicato tem uma receita de R$ 200.000,00 por ano garantida, ou seja, entra no caixa do sindicato quase R$ 20.000,00 por mês.
+            </div>
+
+            <!-- Proposta Comercial -->
+            <div class="pricing-table">
+                <div class="pricing-title">Proposta Comercial (Modelo Ganha-Ganha)</div>
+                <div class="price-item">
+                    R$ {{VALOR_MENSALIDADE}} <span class="price-sub">/mês</span>
+                    <div class="price-sub">Manutenção, IA e Suporte Técnico</div>
+                </div>
+                <div style="margin: 15px 0; border-top: 1px solid rgba(255,255,255,0.2);"></div>
+                <div class="price-item">
+                    {{VALOR_TAXA}}% <span class="price-sub">de Taxa de Sucesso</span>
+                    <div class="price-sub">Sobre cada adesão anual confirmada</div>
+                </div>
+            </div>
+
+            <p>O sindicato passa a estar no bolso do trabalhador, otimiza o trabalho da diretoria e garante um fôlego financeiro previsível.</p>
+
+            <p><strong>Qual o melhor dia e horário para uma breve demonstração virtual nesta semana?</strong></p>
+            
+            <div style="text-align: center;">
+                <a href="https://wa.me/{{CONTATO_WHATSAPP}}" class="cta-button">AGENDAR DEMONSTRAÇÃO</a>
+            </div>
+        </div>
+
+        <!-- Rodapé -->
+        <div class="footer">
+            <p>Atenciosamente,</p>
+            <p><strong>{{VENDEDOR_NOME}}</strong><br>
+            Contato: {{VENDEDOR_CONTATO}}</p>
+            <p style="font-size: 12px; margin-top: 20px;">© 2026 Suprema Algoritmos - Tecnologia para Entidades Sindicais</p>
+        </div>
+    </div>
+</body>
+</html>

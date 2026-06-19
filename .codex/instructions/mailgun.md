@@ -1,6 +1,6 @@
 # Mailgun
 
-A integracao futura com Mailgun deve usar `fetch` nativo do Node.js.
+A integracao com Mailgun deve usar `fetch` nativo do Node.js.
 
 ## Regras tecnicas
 
@@ -13,14 +13,19 @@ A integracao futura com Mailgun deve usar `fetch` nativo do Node.js.
 - Suportar regiao US/EU por variavel de ambiente, como `MAILGUN_API_BASE_URL`.
 - Registrar resposta do Mailgun sem expor segredos.
 - Tratar erro de forma segura.
+- Endpoint de envio controlado: `POST /api/v1/campanhas/proposta-sindicato-digital/enviar`.
 
 ## Regras de seguranca
 
 - Nao enviar e-mail real por padrao.
-- Bloquear envio real em ambiente local/dev sem confirmacao explicita.
+- Bloquear envio real sem `EMAIL_SENDING_ENABLED=true`, `EMAIL_DRY_RUN=false`, `dryRun=false` e `confirmacao=ENVIAR`.
+- Limitar envio controlado a no maximo 10 destinatarios nesta etapa.
+- Toda busca de destinatarios deve aplicar `grupo = 'Trabalhador'`.
 - Exigir campanha criada antes de envio.
 - Nao enviar para registro sem e-mail valido.
+- Renderizar HTML e TXT por destinatario.
+- Bloquear envio do destinatario se sobrar placeholder obrigatorio no HTML ou TXT renderizado.
 - Nao enviar duplicado na mesma campanha.
 - Prever opt-out/descadastro em fase futura.
 
-Nao implementar client Mailgun nesta etapa.
+Nao usar `axios` ou SDK externo.

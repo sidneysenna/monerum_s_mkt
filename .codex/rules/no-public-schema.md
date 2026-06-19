@@ -20,3 +20,5 @@ Tambem e proibido assumir que objetos em `public` pertencem ao projeto.
 O unico schema de aplicacao permitido e `sindicatos_br`.
 
 O model Prisma `Sindicato` deve usar `@@schema("sindicatos_br")`. Nunca trocar para `public`.
+
+Consultas de sindicatos/leads devem manter `grupo = 'Trabalhador'`.

@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 
 import {
   ListarSindicatosParams,
   SindicatosRepository,
-} from '../../domain/repositories/sindicatos.repository';
-import { SindicatoEntity } from '../../domain/entities/sindicato.entity';
-import { SindicatoMapper } from '../mappers/sindicato.mapper';
-import { PrismaService } from '../../../../shared/infrastructure/prisma/prisma.service';
+} from "../../domain/repositories/sindicatos.repository";
+import { SindicatoEntity } from "../../domain/entities/sindicato.entity";
+import { SindicatoMapper } from "../mappers/sindicato.mapper";
+import { PrismaService } from "../../../../shared/infrastructure/prisma/prisma.service";
 
 @Injectable()
 export class PrismaSindicatosRepository implements SindicatosRepository {
@@ -17,7 +17,12 @@ export class PrismaSindicatosRepository implements SindicatosRepository {
     params: ListarSindicatosParams,
   ): Promise<SindicatoEntity[]> {
     const where: Prisma.SindicatoWhereInput = {
-      AND: [{ email: { not: null } }, { email: { not: '' } }],
+      AND: [
+        { grupo: "Trabalhador" },
+        { email: { not: null } },
+        { email: { not: "" } },
+        { email: { contains: "@" } },
+      ],
       ufSede: params.uf,
       grau: params.grau,
       cadastro: params.cadastro,
@@ -27,7 +32,7 @@ export class PrismaSindicatosRepository implements SindicatosRepository {
     const sindicatos = await this.prisma.sindicato.findMany({
       where,
       orderBy: {
-        id: 'asc',
+        id: "asc",
       },
       take: params.limit,
       skip: params.offset,
@@ -40,6 +45,7 @@ export class PrismaSindicatosRepository implements SindicatosRepository {
         localidadeSede: true,
         email: true,
         nomePresidente: true,
+        grupo: true,
       },
     });
 

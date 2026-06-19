@@ -1,11 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from "@nestjs/common";
 
-import { ListarSindicatosQueryDto } from '../dto/listar-sindicatos-query.dto';
-import { ListarSindicatosResponseDto } from '../dto/sindicato-resumo-response.dto';
+import { ListarSindicatosQueryDto } from "../dto/listar-sindicatos-query.dto";
+import { ListarSindicatosResponseDto } from "../dto/sindicato-resumo-response.dto";
 import {
   SINDICATOS_REPOSITORY,
   SindicatosRepository,
-} from '../../domain/repositories/sindicatos.repository';
+} from "../../domain/repositories/sindicatos.repository";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;

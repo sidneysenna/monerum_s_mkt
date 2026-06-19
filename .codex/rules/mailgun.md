@@ -9,5 +9,7 @@
 - Campos previstos: `from`, `to`, `subject`, `text`, `html`.
 - Suportar regiao via `MAILGUN_API_BASE_URL`.
 - Nao expor `MAILGUN_API_KEY` em logs ou erros.
-- Registrar id/status retornado pelo provedor em fase futura.
-- Nao enviar e-mail real nesta etapa.
+- Envio real exige `EMAIL_SENDING_ENABLED=true`, `EMAIL_DRY_RUN=false`, `dryRun=false` e `confirmacao=ENVIAR`.
+- Dry-run e padrao e nao pode chamar Mailgun.
+- Limite maximo de envio nesta etapa: 10 destinatarios.
+- Toda selecao de destinatarios deve aplicar `grupo = 'Trabalhador'`.

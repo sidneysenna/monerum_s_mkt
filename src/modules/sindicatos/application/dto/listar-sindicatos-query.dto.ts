@@ -1,22 +1,15 @@
-import { Transform, Type } from 'class-transformer';
-import {
-  IsInt,
-  IsOptional,
-  IsString,
-  Length,
-  Max,
-  Min,
-} from 'class-validator';
+import { Transform, Type } from "class-transformer";
+import { IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 
 const trimString = ({ value }: { value: unknown }): unknown =>
-  typeof value === 'string' ? value.trim() : value;
+  typeof value === "string" ? value.trim() : value;
 
 export class ListarSindicatosQueryDto {
   @IsOptional()
   @IsString()
   @Length(2, 2)
   @Transform(({ value }) =>
-    typeof value === 'string' ? value.trim().toUpperCase() : value,
+    typeof value === "string" ? value.trim().toUpperCase() : value,
   )
   uf?: string;
 

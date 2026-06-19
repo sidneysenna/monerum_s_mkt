@@ -22,6 +22,14 @@ sindicatos_br.sindicatos
 
 Esta tabela ja existe e deve ser tratada como somente leitura pelo modulo `sindicatos`. Nao criar migration para ela, nao recriar e nao alterar sua estrutura.
 
+Regra permanente de segmentacao:
+
+```txt
+grupo = 'Trabalhador'
+```
+
+Toda consulta de sindicatos/leads deve aplicar esse filtro, inclusive listagens gerais e selecao de destinatarios de campanha.
+
 ## Mapeamento Prisma
 
 O model Prisma `Sindicato` mapeia a tabela existente:
@@ -56,5 +64,6 @@ Consultas futuras devem:
 - permitir SQL raw apenas quando necessario, parametrizado e seguro;
 - nunca alterar `sindicatos_br.sindicatos`;
 - nunca tocar no schema `public`.
+- sempre aplicar `grupo = 'Trabalhador'`.
 
 Leitura diagnostica em `information_schema` e `pg_catalog` e permitida quando necessaria.

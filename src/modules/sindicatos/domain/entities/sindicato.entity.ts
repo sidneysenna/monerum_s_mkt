@@ -8,5 +8,6 @@ export class SindicatoEntity {
     public readonly localidadeSede: string | null,
     public readonly email: string,
     public readonly nomePresidente: string | null,
+    public readonly grupo: string | null = null,
   ) {}
 }

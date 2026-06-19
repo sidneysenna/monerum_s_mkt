@@ -21,3 +21,7 @@ DATABASE_URL
 - Envio real deve ser bloqueado por padrao.
 - Ambiente local/dev nao deve enviar e-mails sem autorizacao explicita.
 - Scripts devem validar configuracao antes de executar.
+- Dry-run nao deve chamar Mailgun.
+- Toda consulta de leads deve aplicar `grupo = 'Trabalhador'`.
+- Toda consulta de destinatarios para campanha deve exigir `email IS NOT NULL` e `email <> ''`, alem de validacao minima de formato antes de enviar.
+- Nunca enviar para a base inteira.

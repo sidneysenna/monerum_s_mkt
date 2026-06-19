@@ -1,6 +1,6 @@
-import { SindicatoEntity } from '../entities/sindicato.entity';
+import { SindicatoEntity } from "../entities/sindicato.entity";
 
-export const SINDICATOS_REPOSITORY = Symbol('SINDICATOS_REPOSITORY');
+export const SINDICATOS_REPOSITORY = Symbol("SINDICATOS_REPOSITORY");
 
 export interface ListarSindicatosParams {
   uf?: string;

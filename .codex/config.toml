@@ -63,9 +63,13 @@ log_secrets = false
 public_schema_allowed = false
 http_controllers_now = true
 functional_implementation_now = false
+email_real_send_default = false
+mandatory_leads_filter = "grupo = 'Trabalhador'"
 
 [api]
 enabled = true
 version_prefix = "api/v1"
 first_endpoint = "GET /api/v1/health"
 read_endpoint = "GET /api/v1/sindicatos"
+campaign_preview_endpoint = "GET /api/v1/campanhas/proposta-sindicato-digital/preview"
+campaign_send_endpoint = "POST /api/v1/campanhas/proposta-sindicato-digital/enviar"

@@ -1,5 +1,5 @@
-export const REQUIRED_DATABASE_SCHEMA = 'sindicatos_br';
-export const FORBIDDEN_DATABASE_SCHEMA = 'public';
+export const REQUIRED_DATABASE_SCHEMA = "sindicatos_br";
+export const FORBIDDEN_DATABASE_SCHEMA = "public";
 
 export interface PlannedEnv {
   NODE_ENV: string;

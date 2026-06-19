@@ -1,9 +1,9 @@
-import { SindicatoEntity } from '../../domain/entities/sindicato.entity';
+import { SindicatoEntity } from "../../domain/entities/sindicato.entity";
 import {
   ListarSindicatosParams,
   SindicatosRepository,
-} from '../../domain/repositories/sindicatos.repository';
-import { ListarSindicatosUseCase } from './listar-sindicatos.usecase';
+} from "../../domain/repositories/sindicatos.repository";
+import { ListarSindicatosUseCase } from "./listar-sindicatos.usecase";
 
 class FakeSindicatosRepository implements SindicatosRepository {
   params?: ListarSindicatosParams;
@@ -16,8 +16,8 @@ class FakeSindicatosRepository implements SindicatosRepository {
   }
 }
 
-describe('ListarSindicatosUseCase', () => {
-  it('aplica paginacao padrao', async () => {
+describe("ListarSindicatosUseCase", () => {
+  it("aplica paginacao padrao", async () => {
     const repository = new FakeSindicatosRepository();
     const useCase = new ListarSindicatosUseCase(repository);
 
@@ -28,7 +28,7 @@ describe('ListarSindicatosUseCase', () => {
     expect(result.pagination).toEqual({ limit: 20, offset: 0, count: 0 });
   });
 
-  it('limita limit a no maximo 100', async () => {
+  it("limita limit a no maximo 100", async () => {
     const repository = new FakeSindicatosRepository();
     const useCase = new ListarSindicatosUseCase(repository);
 

@@ -2,6 +2,7 @@
 
 - Usar exclusivamente `sindicatos_br`.
 - Tratar `sindicatos_br.sindicatos` como tabela existente e somente leitura.
+- Toda consulta de sindicatos/leads deve aplicar `grupo = 'Trabalhador'`.
 - Nao criar migration para `sindicatos_br.sindicatos`.
 - Nao alterar a estrutura de `sindicatos_br.sindicatos`.
 - Nao usar `prisma migrate reset`.

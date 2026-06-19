@@ -2,7 +2,7 @@
 
 API HTTP planejada para apoiar uma futura ferramenta de envio de e-mail em massa para leads armazenados em PostgreSQL.
 
-Esta etapa configura a entrada HTTP versionada em `/api/v1`, conexao Prisma e leitura inicial da tabela existente `sindicatos_br.sindicatos`. Ainda nao ha envio real, migrations ou fluxo funcional de campanha.
+Esta etapa configura a entrada HTTP versionada em `/api/v1`, conexao Prisma, leitura inicial da tabela existente `sindicatos_br.sindicatos` e envio controlado de campanha por Mailgun. Envio real fica bloqueado por padrao.
 
 ## Objetivo
 
@@ -11,6 +11,8 @@ Preparar uma API NestJS com TypeScript, Prisma, PostgreSQL, Mailgun e templates 
 - consultar leads existentes em `sindicatos_br.sindicatos`;
 - filtrar sindicatos por UF, grau, area geoeconomica, cadastro, classe, categoria e outros campos;
 - executar campanhas por API e, quando necessario, scripts internos operacionais;
+- montar e-mails com HTML renderizado por destinatario e TXT extraido do HTML ja renderizado;
+- enviar por Mailgun com `fetch` nativo quando todas as travas forem atendidas;
 - registrar campanhas, destinatarios, status, erros, tentativas e auditoria;
 - evitar reenvios indevidos;
 - preparar filas, processamento assincrono e retentativas em fases futuras.
@@ -28,6 +30,8 @@ Endpoints disponiveis:
 ```txt
 GET /api/v1/health
 GET /api/v1/sindicatos
+GET /api/v1/campanhas/proposta-sindicato-digital/preview
+POST /api/v1/campanhas/proposta-sindicato-digital/enviar
 ```
 
 Resposta esperada:
@@ -54,6 +58,19 @@ Teste manual:
 ```txt
 http://localhost:3000/api/v1/health
 http://localhost:3000/api/v1/sindicatos?uf=MG&limit=10
+http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/preview
+```
+
+Dry-run de envio:
+
+```bash
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=1"
+```
+
+Envio real controlado, somente se configurado:
+
+```bash
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=1&dryRun=false&confirmacao=ENVIAR"
 ```
 
 ## Scripts operacionais
@@ -121,6 +138,7 @@ Regras absolutas:
 - nao recriar nem alterar a estrutura de `sindicatos_br.sindicatos`;
 - tratar `sindicatos_br.sindicatos` como fonte existente e somente leitura.
 - o model Prisma `Sindicato` usa `@@map("sindicatos")` e `@@schema("sindicatos_br")`.
+- toda consulta de sindicatos/leads deve aplicar `grupo = 'Trabalhador'`.
 
 ## Arquitetura planejada
 
@@ -162,7 +180,7 @@ MAILGUN_FROM_EMAIL=
 
 EMAIL_SENDING_ENABLED=false
 EMAIL_DRY_RUN=true
-EMAIL_BATCH_SIZE=50
+EMAIL_BATCH_SIZE=10
 EMAIL_BATCH_INTERVAL_MS=1000
 EMAIL_REQUIRE_CONFIRMATION=true
 ```
@@ -171,7 +189,7 @@ Nunca commitar `.env` real nem segredos.
 
 ## Mailgun
 
-A integracao futura deve usar:
+A integracao usa:
 
 - endpoint `/messages`;
 - Basic Auth com usuario `api` e senha `MAILGUN_API_KEY`;
@@ -182,17 +200,62 @@ A integracao futura deve usar:
 - nenhum `axios`;
 - nenhum SDK externo sem autorizacao.
 
-Envio real nao esta implementado e devera ser bloqueado por padrao em ambiente local/dev.
+Envio real fica bloqueado por padrao. Para enviar de verdade, todas as condicoes abaixo precisam ser verdadeiras:
+
+- `EMAIL_SENDING_ENABLED=true`
+- `EMAIL_DRY_RUN=false`
+- request com `dryRun=false`
+- request com `confirmacao=ENVIAR`
+- limite maximo de `10` destinatarios nesta etapa
+
+Sem todas essas condicoes, o endpoint retorna apenas dry-run e nao chama Mailgun.
+
+## Campanha inicial
+
+Campanha:
+
+```txt
+proposta-sindicato-digital
+```
+
+Template:
+
+```txt
+src/modules/emails/infrastructure/templates/campanhas/proposta-sindicato-digital/
+  template.html
+  template.txt
+  metadata.json
+```
+
+O `template.html` desta campanha deve permanecer igual ao anexo original, com uma excecao autorizada: a logo foi trocada de Base64 para URL externa para evitar HTML grande e corte em clientes de e-mail como Gmail. Nao reformatar, minificar, corrigir, remover CSS ou alterar o layout.
+
+Logo usada no HTML:
+
+```txt
+http://monerum.com.br/asets/logo-suprema.png
+```
+
+Placeholders obrigatorios:
+
+```txt
+NOME_SINDICATO = denominacao
+NOME_PRESIDENTE = nomePresidente
+VALOR_MENSALIDADE = 200,00
+VALOR_TAXA = 10
+CONTATO_WHATSAPP = 5531984791973
+VENDEDOR_NOME = SIDNEY SENNA
+VENDEDOR_CONTATO = sidney.senna@supremaalgoritmos.com.br
+```
+
+Para cada destinatario, a API renderiza o HTML individualmente e gera o TXT a partir do HTML ja renderizado. Se qualquer placeholder obrigatorio sobrar no HTML ou TXT, o envio daquele destinatario e bloqueado.
 
 ## Fases futuras
 
-1. Criar filtros mais completos de segmentacao de leads.
-2. Modelar entidades futuras de campanhas sem tocar na tabela existente de sindicatos.
-3. Desenhar cliente Mailgun com `fetch`, ainda sem envio real por padrao.
-4. Criar motor de templates HTML/TXT.
-5. Criar fluxo de campanha por API/scripts, preview e dry-run.
-6. Criar testes e validacoes de seguranca.
+1. Criar persistencia de campanhas e destinatarios no schema `sindicatos_br`.
+2. Registrar status de envio, logs de erro, controle de duplicidade, retentativas e opt-out.
+3. Criar filtros mais completos de segmentacao de leads.
+4. Preparar filas e processamento assincrono.
 
 ## Aviso
 
-Esta etapa e leitura inicial segura, documentacao e regras de seguranca. Nenhum e-mail sera enviado por este projeto nesta fase e nenhuma migration foi criada.
+Esta etapa permite envio controlado, mas dry-run e o comportamento padrao. Nenhuma migration foi criada e a tabela existente nao foi alterada.

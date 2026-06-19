@@ -1,17 +1,18 @@
-import { Sindicato } from '@prisma/client';
+import { Sindicato } from "@prisma/client";
 
-import { SindicatoEntity } from '../../domain/entities/sindicato.entity';
+import { SindicatoEntity } from "../../domain/entities/sindicato.entity";
 
 type SindicatoResumoPrisma = Pick<
   Sindicato,
-  | 'id'
-  | 'cnpj'
-  | 'denominacao'
-  | 'grau'
-  | 'ufSede'
-  | 'localidadeSede'
-  | 'email'
-  | 'nomePresidente'
+  | "id"
+  | "cnpj"
+  | "denominacao"
+  | "grau"
+  | "ufSede"
+  | "localidadeSede"
+  | "email"
+  | "nomePresidente"
+  | "grupo"
 >;
 
 export class SindicatoMapper {
@@ -25,6 +26,7 @@ export class SindicatoMapper {
       sindicato.localidadeSede,
       sindicato.email ?? '',
       sindicato.nomePresidente,
+      sindicato.grupo,
     );
   }
 }

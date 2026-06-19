@@ -1,9 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get } from "@nestjs/common";
 
-import { HealthResponseDto } from '../../application/dto/health-response.dto';
-import { ObterHealthUseCase } from '../../application/usecases/obter-health.usecase';
+import { HealthResponseDto } from "../../application/dto/health-response.dto";
+import { ObterHealthUseCase } from "../../application/usecases/obter-health.usecase";
 
-@Controller('health')
+@Controller("health")
 export class HealthController {
   constructor(private readonly obterHealthUseCase: ObterHealthUseCase) {}
 

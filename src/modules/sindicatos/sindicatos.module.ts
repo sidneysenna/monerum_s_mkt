@@ -1,11 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 
-import {
-  SINDICATOS_REPOSITORY,
-} from './domain/repositories/sindicatos.repository';
-import { ListarSindicatosUseCase } from './application/usecases/listar-sindicatos.usecase';
-import { PrismaSindicatosRepository } from './infrastructure/prisma/prisma-sindicatos.repository';
-import { SindicatosController } from './presentation/controllers/sindicatos.controller';
+import { SINDICATOS_REPOSITORY } from "./domain/repositories/sindicatos.repository";
+import { ListarSindicatosUseCase } from "./application/usecases/listar-sindicatos.usecase";
+import { PrismaSindicatosRepository } from "./infrastructure/prisma/prisma-sindicatos.repository";
+import { SindicatosController } from "./presentation/controllers/sindicatos.controller";
 
 @Module({
   controllers: [SindicatosController],
@@ -16,5 +14,6 @@ import { SindicatosController } from './presentation/controllers/sindicatos.cont
       useClass: PrismaSindicatosRepository,
     },
   ],
+  exports: [SINDICATOS_REPOSITORY],
 })
 export class SindicatosModule {}
