@@ -49,6 +49,7 @@ Nao criar endpoints de campanha, envio ou leads nesta etapa.
 - `health`: health check basico da API.
 - `sindicatos`: leitura inicial da tabela existente `sindicatos_br.sindicatos`.
 - `leads`: consulta somente leitura da tabela existente `sindicatos_br.sindicatos`.
+- `campanhas`: controle de campanhas, limite diario, elegiveis e destinatarios enviados.
 - `campanhas`: desenho de campanhas, destinatarios, eventos, status, erros e tentativas.
 - `emails`: contrato `EmailProvider` e futura implementacao `MailgunEmailProvider`.
 - `templates`: renderizacao de templates `.html` e `.txt`.

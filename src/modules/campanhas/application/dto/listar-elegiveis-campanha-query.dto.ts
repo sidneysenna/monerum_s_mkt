@@ -1,34 +1,10 @@
 import { Transform, Type } from "class-transformer";
-import {
-  IsBoolean,
-  IsInt,
-  IsOptional,
-  IsString,
-  Length,
-  Max,
-  Min,
-} from "class-validator";
+import { IsInt, IsOptional, IsString, Length, Max, Min } from "class-validator";
 
 const trimString = ({ value }: { value: unknown }): unknown =>
   typeof value === "string" ? value.trim() : value;
 
-const toBoolean = ({ value }: { value: unknown }): unknown => {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true";
-  }
-
-  return value;
-};
-
-export class EnviarCampanhaQueryDto {
+export class ListarElegiveisCampanhaQueryDto {
   @IsOptional()
   @IsString()
   @Length(2, 2)
@@ -60,12 +36,8 @@ export class EnviarCampanhaQueryDto {
   limit?: number;
 
   @IsOptional()
-  @Transform(toBoolean)
-  @IsBoolean()
-  dryRun?: boolean;
-
-  @IsOptional()
-  @IsString()
-  @Transform(trimString)
-  confirmacao?: string;
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
 }

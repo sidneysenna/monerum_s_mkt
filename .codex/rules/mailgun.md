@@ -3,6 +3,9 @@
 - Usar `fetch` nativo do Node.js.
 - Nao usar `axios`.
 - Nao usar SDK externo sem autorizacao.
+- Todo envio real deve registrar campanha e destinatario.
+- Nao chamar Mailgun em dry-run.
+- Nao reenviar campanha para sindicato ja enviado.
 - Endpoint previsto: `/messages`.
 - Auth: Basic Auth com usuario `api` e senha `MAILGUN_API_KEY`.
 - Body: `application/x-www-form-urlencoded`.

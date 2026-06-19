@@ -1,12 +1,24 @@
 import { SindicatoEntity } from "../../../sindicatos/domain/entities/sindicato.entity";
-import {
-  ListarSindicatosParams,
-  SindicatosRepository,
-} from "../../../sindicatos/domain/repositories/sindicatos.repository";
+import { CampanhaEmailEntity } from "../../domain/entities/campanha-email.entity";
 import { EnviarCampanhaSindicatoDigitalUseCase } from "./enviar-campanha-sindicato-digital.usecase";
 
-class FakeSindicatosRepository implements SindicatosRepository {
-  params?: ListarSindicatosParams;
+class FakeCampanhasRepository {
+  campanha = new CampanhaEmailEntity(
+    "campanha-id",
+    "CAMPANHA_001",
+    "consciencia-problema-apresentando-monerum-s",
+    "CAMPANHA 001 - Consciência do problema e apresentando Monerum-S",
+    "proposta-sindicato-digital",
+    "ativa",
+    100,
+  );
+  resumo = {
+    totalEnviados: 0,
+    enviadosHoje: 0,
+    vagasRestantesHoje: 100,
+    totalFalhas: 0,
+  };
+  params?: unknown;
   sindicatos = [
     new SindicatoEntity(
       123,
@@ -21,9 +33,15 @@ class FakeSindicatosRepository implements SindicatosRepository {
     ),
   ];
 
-  async listarComEmail(
-    params: ListarSindicatosParams,
-  ): Promise<SindicatoEntity[]> {
+  async garantirCampanhaInicial(): Promise<CampanhaEmailEntity> {
+    return this.campanha;
+  }
+
+  async obterResumo(): Promise<typeof this.resumo> {
+    return this.resumo;
+  }
+
+  async listarElegiveis(params: unknown): Promise<SindicatoEntity[]> {
     this.params = params;
     return this.sindicatos;
   }
@@ -36,9 +54,12 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
     process.env = originalEnv;
   });
 
-  it("bloqueia envio real por padrao e nao chama Mailgun", async () => {
+  it("bloqueia envio real por padrao e nao chama Mailgun nem grava enviado", async () => {
     process.env = { ...originalEnv };
-    const repository = new FakeSindicatosRepository();
+    const campanhasRepository = new FakeCampanhasRepository();
+    const destinatariosRepository = {
+      registrarResultado: jest.fn(),
+    };
     const enviarEmailService = {
       enviar: jest.fn(),
     };
@@ -47,13 +68,15 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       validateNoUnresolvedPlaceholders: jest.fn(),
     };
     const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
-      repository,
+      campanhasRepository as never,
+      destinatariosRepository as never,
       templateRenderer as never,
       enviarEmailService as never,
     );
 
     const result = await useCase.execute({});
 
+    expect(result.campanha).toBe("CAMPANHA_001");
     expect(result.dryRun).toBe(true);
     expect(result.envioRealExecutado).toBe(false);
     if (result.dryRun === true) {
@@ -67,30 +90,68 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
     }
     expect(enviarEmailService.enviar).not.toHaveBeenCalled();
     expect(templateRenderer.render).not.toHaveBeenCalled();
+    expect(destinatariosRepository.registrarResultado).not.toHaveBeenCalled();
   });
 
-  it("limita limit a no maximo 10 no envio controlado", async () => {
-    const repository = new FakeSindicatosRepository();
+  it("respeita limite diario de 100 e limita a vagas restantes", async () => {
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.resumo = {
+      totalEnviados: 250,
+      enviadosHoje: 37,
+      vagasRestantesHoje: 63,
+      totalFalhas: 0,
+    };
     const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
-      repository,
+      campanhasRepository as never,
+      { registrarResultado: jest.fn() } as never,
       {} as never,
       { enviar: jest.fn() } as never,
     );
 
-    await useCase.execute({ limit: 50 });
+    await useCase.execute({ limit: 100 });
 
-    expect(repository.params?.limit).toBe(10);
+    expect(campanhasRepository.params).toEqual(
+      expect.objectContaining({
+        campanhaCodigo: "CAMPANHA_001",
+        limit: 63,
+      }),
+    );
   });
 
-  it("renderiza cada destinatario separadamente antes do envio real", async () => {
+  it("nao seleciona destinatarios quando limite diario foi atingido", async () => {
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.resumo = {
+      totalEnviados: 100,
+      enviadosHoje: 100,
+      vagasRestantesHoje: 0,
+      totalFalhas: 0,
+    };
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      campanhasRepository as never,
+      { registrarResultado: jest.fn() } as never,
+      {} as never,
+      { enviar: jest.fn() } as never,
+    );
+
+    const result = await useCase.execute({ limit: 100 });
+
+    expect(result.dryRun).toBe(true);
+    if (result.dryRun) {
+      expect(result.motivo).toBe("limite_diario_atingido");
+      expect(result.destinatariosEncontrados).toBe(0);
+    }
+    expect(campanhasRepository.params).toBeUndefined();
+  });
+
+  it("renderiza cada destinatario separadamente e grava status enviado", async () => {
     process.env = {
       ...originalEnv,
       EMAIL_SENDING_ENABLED: "true",
       EMAIL_DRY_RUN: "false",
       MAILGUN_FROM_EMAIL: "nao-responder@example.com",
     };
-    const repository = new FakeSindicatosRepository();
-    repository.sindicatos = [
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.sindicatos = [
       new SindicatoEntity(
         1,
         null,
@@ -123,10 +184,14 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       validateNoUnresolvedPlaceholders: jest.fn(),
     };
     const enviarEmailService = {
-      enviar: jest.fn(),
+      enviar: jest.fn(async () => ({ providerMessageId: "mg-id" })),
+    };
+    const destinatariosRepository = {
+      registrarResultado: jest.fn(async () => ({ id: "registro-id" })),
     };
     const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
-      repository,
+      campanhasRepository as never,
+      destinatariosRepository as never,
       templateRenderer as never,
       enviarEmailService as never,
     );
@@ -142,49 +207,46 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
         NOME_PRESIDENTE: "Maria",
         VALOR_MENSALIDADE: "500,00",
         VALOR_TAXA: "10",
-        CONTATO_WHATSAPP: "5531984791973",
-        VENDEDOR_NOME: "SIDNEY SENNA",
-        VENDEDOR_CONTATO: "sidney.senna@supremaalgoritmos.com.br",
       }),
     );
-    expect(templateRenderer.render).toHaveBeenNthCalledWith(
-      2,
-      "proposta-sindicato-digital",
+    expect(destinatariosRepository.registrarResultado).toHaveBeenCalledWith(
       expect.objectContaining({
-        NOME_SINDICATO: "Sindicato B",
-        NOME_PRESIDENTE: "Jose",
+        campanhaId: "campanha-id",
+        sindicatoId: 1,
+        status: "enviado",
+        mailgunMessageId: "mg-id",
       }),
     );
     expect(enviarEmailService.enviar).toHaveBeenCalledTimes(2);
   });
 
-  it("nao envia destinatario quando sobra placeholder obrigatorio", async () => {
+  it("grava falha quando Mailgun falha", async () => {
     process.env = {
       ...originalEnv,
       EMAIL_SENDING_ENABLED: "true",
       EMAIL_DRY_RUN: "false",
       MAILGUN_FROM_EMAIL: "nao-responder@example.com",
     };
-    const repository = new FakeSindicatosRepository();
-    const templateRenderer = {
-      render: jest.fn(async () => ({
-        subject: "Assunto",
-        html: "{{NOME_SINDICATO}}",
-        text: "{{NOME_SINDICATO}}",
-      })),
-      validateNoUnresolvedPlaceholders: jest.fn(() => {
-        throw new Error(
-          "Template renderizado contem placeholders obrigatorios nao preenchidos: NOME_SINDICATO.",
-        );
-      }),
-    };
-    const enviarEmailService = {
-      enviar: jest.fn(),
+    const campanhasRepository = new FakeCampanhasRepository();
+    const destinatariosRepository = {
+      registrarResultado: jest.fn(async () => ({ id: "registro-id" })),
     };
     const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
-      repository,
-      templateRenderer as never,
-      enviarEmailService as never,
+      campanhasRepository as never,
+      destinatariosRepository as never,
+      {
+        render: jest.fn(async () => ({
+          subject: "Assunto",
+          html: "<p>ok</p>",
+          text: "ok",
+        })),
+        validateNoUnresolvedPlaceholders: jest.fn(),
+      } as never,
+      {
+        enviar: jest.fn(async () => {
+          throw new Error("Mailgun indisponivel");
+        }),
+      } as never,
     );
 
     const result = await useCase.execute({
@@ -192,7 +254,11 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       confirmacao: "ENVIAR",
     });
 
-    expect(enviarEmailService.enviar).not.toHaveBeenCalled();
+    expect(destinatariosRepository.registrarResultado).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "falhou",
+      }),
+    );
     expect(result.dryRun).toBe(false);
     if (result.dryRun === false) {
       expect(result.totalFalhas).toBe(1);

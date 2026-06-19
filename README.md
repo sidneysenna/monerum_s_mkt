@@ -32,6 +32,10 @@ GET /api/v1/health
 GET /api/v1/sindicatos
 GET /api/v1/campanhas/proposta-sindicato-digital/preview
 POST /api/v1/campanhas/proposta-sindicato-digital/enviar
+POST /api/v1/campanhas/CAMPANHA_001/enviar
+GET /api/v1/campanhas/CAMPANHA_001/status
+GET /api/v1/campanhas/CAMPANHA_001/destinatarios
+GET /api/v1/campanhas/CAMPANHA_001/elegiveis
 ```
 
 Resposta esperada:
@@ -64,13 +68,13 @@ http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/preview
 Dry-run de envio:
 
 ```bash
-curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=1"
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=100"
 ```
 
 Envio real controlado, somente se configurado:
 
 ```bash
-curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=1&dryRun=false&confirmacao=ENVIAR"
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=100&dryRun=false&confirmacao=ENVIAR"
 ```
 
 ## Scripts operacionais
@@ -252,6 +256,46 @@ VENDEDOR_CONTATO = sidney.senna@supremaalgoritmos.com.br
 VALOR_MENSALIDADE padrao da campanha: 500,00.
 
 Para cada destinatario, a API renderiza o HTML individualmente e gera o TXT a partir do HTML ja renderizado. Se qualquer placeholder obrigatorio sobrar no HTML ou TXT, o envio daquele destinatario e bloqueado.
+
+## Controle de campanhas
+
+Todo envio real e associado a uma campanha. A campanha inicial e:
+
+```txt
+codigo: CAMPANHA_001
+nome: CAMPANHA 001 - Consciência do problema e apresentando Monerum-S
+slug: consciencia-problema-apresentando-monerum-s
+template: proposta-sindicato-digital
+status: ativa
+limite_diario: 100
+```
+
+O endpoint temporario antigo continua funcionando:
+
+```txt
+POST /api/v1/campanhas/proposta-sindicato-digital/enviar
+```
+
+Internamente, ele usa `CAMPANHA_001`, respeita limite diario de 100 e exclui sindicatos que ja tenham registro `enviado` para essa campanha. Dry-run nao grava status `enviado` e nao bloqueia destinatarios futuros.
+
+Consultas:
+
+```bash
+curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/status"
+curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/destinatarios?status=enviado&limit=100"
+curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/elegiveis?uf=MG&limit=100"
+```
+
+Os endpoints publicos retornam e-mail mascarado. Toda selecao de elegiveis aplica `grupo = 'Trabalhador'`, exige e-mail preenchido e exclui apenas sindicatos ja enviados para a mesma campanha.
+
+Tabelas novas de controle no schema `sindicatos_br`:
+
+```txt
+sindicatos_br.campanhas_email
+sindicatos_br.campanha_email_destinatarios
+```
+
+`sindicatos_br.sindicatos` continua somente leitura e nao recebeu FK nova.
 
 ## Fases futuras
 

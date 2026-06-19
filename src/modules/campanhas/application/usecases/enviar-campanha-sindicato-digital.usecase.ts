@@ -1,18 +1,23 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import { EmailAddress } from "../../../emails/domain/value-objects/email-address.vo";
 import { EnviarEmailService } from "../../../emails/application/services/enviar-email.service";
+import { EmailAddress } from "../../../emails/domain/value-objects/email-address.vo";
 import { TemplateRendererService } from "../../../emails/infrastructure/templates/template-renderer.service";
-import { EnviarCampanhaQueryDto } from "../dto/enviar-campanha-query.dto";
-import {
-  SINDICATOS_REPOSITORY,
-  SindicatosRepository,
-} from "../../../sindicatos/domain/repositories/sindicatos.repository";
 import { SindicatoEntity } from "../../../sindicatos/domain/entities/sindicato.entity";
+import {
+  CAMPANHA_EMAIL_DESTINATARIOS_REPOSITORY,
+  CampanhaEmailDestinatariosRepository,
+} from "../../domain/repositories/campanha-email-destinatarios.repository";
+import {
+  CAMPANHAS_EMAIL_REPOSITORY,
+  CampanhasEmailRepository,
+} from "../../domain/repositories/campanhas-email.repository";
+import { EnviarCampanhaQueryDto } from "../dto/enviar-campanha-query.dto";
 
-const CAMPANHA_ID = "proposta-sindicato-digital";
+const CAMPANHA_CODIGO = "CAMPANHA_001";
+const TEMPLATE_ID = "proposta-sindicato-digital";
 const DEFAULT_LIMIT = 1;
-const MAX_LIMIT = 10;
+const MAX_LIMIT = 100;
 const REQUIRED_GROUP = "Trabalhador";
 const REQUIRED_PLACEHOLDERS = [
   "NOME_SINDICATO",
@@ -45,32 +50,40 @@ interface ResultadoEnvio {
   erro?: string;
 }
 
+interface CampanhaEnvioMeta {
+  campanha: typeof CAMPANHA_CODIGO;
+  template: typeof TEMPLATE_ID;
+  filtroObrigatorio: { grupo: typeof REQUIRED_GROUP };
+  limiteDiario: number;
+  enviadosHoje: number;
+  vagasRestantes: number;
+}
+
 export type EnviarCampanhaSindicatoDigitalResponse =
-  | {
-      campanha: typeof CAMPANHA_ID;
+  | (CampanhaEnvioMeta & {
       dryRun: true;
       envioRealExecutado: false;
-      filtroObrigatorio: { grupo: typeof REQUIRED_GROUP };
       placeholders: typeof FIXED_PLACEHOLDERS;
       destinatariosEncontrados: number;
       destinatarios: DestinatarioDryRun[];
-    }
-  | {
-      campanha: typeof CAMPANHA_ID;
+      motivo?: "limite_diario_atingido";
+    })
+  | (CampanhaEnvioMeta & {
       dryRun: false;
       envioRealExecutado: true;
-      filtroObrigatorio: { grupo: typeof REQUIRED_GROUP };
       totalSelecionados: number;
       totalEnviados: number;
       totalFalhas: number;
       resultados: ResultadoEnvio[];
-    };
+    });
 
 @Injectable()
 export class EnviarCampanhaSindicatoDigitalUseCase {
   constructor(
-    @Inject(SINDICATOS_REPOSITORY)
-    private readonly sindicatosRepository: SindicatosRepository,
+    @Inject(CAMPANHAS_EMAIL_REPOSITORY)
+    private readonly campanhasRepository: CampanhasEmailRepository,
+    @Inject(CAMPANHA_EMAIL_DESTINATARIOS_REPOSITORY)
+    private readonly destinatariosRepository: CampanhaEmailDestinatariosRepository,
     private readonly templateRenderer: TemplateRendererService,
     private readonly enviarEmailService: EnviarEmailService,
   ) {}
@@ -78,10 +91,29 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
   async execute(
     query: EnviarCampanhaQueryDto,
   ): Promise<EnviarCampanhaSindicatoDigitalResponse> {
-    const limit = this.normalizeLimit(query.limit);
+    const campanha = await this.campanhasRepository.garantirCampanhaInicial();
+    const resumo = await this.campanhasRepository.obterResumo(campanha);
+    const vagasRestantes = resumo.vagasRestantesHoje;
+
+    if (vagasRestantes <= 0) {
+      return {
+        ...this.buildMeta(campanha.limiteDiario, resumo.enviadosHoje, 0),
+        dryRun: true,
+        envioRealExecutado: false,
+        placeholders: FIXED_PLACEHOLDERS,
+        destinatariosEncontrados: 0,
+        destinatarios: [],
+        motivo: "limite_diario_atingido",
+      };
+    }
+
+    const limit = this.normalizeLimit(
+      Math.min(query.limit ?? DEFAULT_LIMIT, vagasRestantes),
+    );
     const dryRun = query.dryRun ?? true;
     const destinatarios = (
-      await this.sindicatosRepository.listarComEmail({
+      await this.campanhasRepository.listarElegiveis({
+        campanhaCodigo: campanha.codigo,
         uf: query.uf,
         grau: query.grau,
         cadastro: query.cadastro,
@@ -95,10 +127,13 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
 
     if (!canSendReal) {
       return {
-        campanha: CAMPANHA_ID,
+        ...this.buildMeta(
+          campanha.limiteDiario,
+          resumo.enviadosHoje,
+          vagasRestantes,
+        ),
         dryRun: true,
         envioRealExecutado: false,
-        filtroObrigatorio: { grupo: REQUIRED_GROUP },
         placeholders: FIXED_PLACEHOLDERS,
         destinatariosEncontrados: destinatarios.length,
         destinatarios: destinatarios.map((destinatario) =>
@@ -113,7 +148,7 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     for (const destinatario of destinatarios) {
       try {
         const template = await this.templateRenderer.render(
-          CAMPANHA_ID,
+          TEMPLATE_ID,
           this.buildPlaceholders(destinatario),
         );
         this.templateRenderer.validateNoUnresolvedPlaceholders(
@@ -121,7 +156,7 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
           REQUIRED_PLACEHOLDERS,
         );
 
-        await this.enviarEmailService.enviar({
+        const envio = await this.enviarEmailService.enviar({
           from,
           to: {
             email: destinatario.email,
@@ -132,12 +167,29 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
           html: template.html,
         });
 
+        const registro = await this.destinatariosRepository.registrarResultado({
+          campanhaId: campanha.id,
+          sindicatoId: destinatario.id,
+          email: destinatario.email,
+          status: "enviado",
+          mailgunMessageId: envio.providerMessageId,
+        });
+
         resultados.push({
           id: destinatario.id,
           emailMascarado: this.maskEmail(destinatario.email),
-          status: "enviado",
+          status: registro ? "enviado" : "falha",
+          erro: registro ? undefined : "Destinatario ja registrado como enviado.",
         });
       } catch (error) {
+        await this.destinatariosRepository.registrarResultado({
+          campanhaId: campanha.id,
+          sindicatoId: destinatario.id,
+          email: destinatario.email,
+          status: "falhou",
+          erro: this.sanitizeError(error),
+        });
+
         resultados.push({
           id: destinatario.id,
           emailMascarado: this.maskEmail(destinatario.email),
@@ -148,10 +200,13 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     }
 
     return {
-      campanha: CAMPANHA_ID,
+      ...this.buildMeta(
+        campanha.limiteDiario,
+        resumo.enviadosHoje,
+        vagasRestantes,
+      ),
       dryRun: false,
       envioRealExecutado: true,
-      filtroObrigatorio: { grupo: REQUIRED_GROUP },
       totalSelecionados: destinatarios.length,
       totalEnviados: resultados.filter(
         (resultado) => resultado.status === "enviado",
@@ -160,6 +215,21 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
         (resultado) => resultado.status === "falha",
       ).length,
       resultados,
+    };
+  }
+
+  private buildMeta(
+    limiteDiario: number,
+    enviadosHoje: number,
+    vagasRestantes: number,
+  ): CampanhaEnvioMeta {
+    return {
+      campanha: CAMPANHA_CODIGO,
+      template: TEMPLATE_ID,
+      filtroObrigatorio: { grupo: REQUIRED_GROUP },
+      limiteDiario,
+      enviadosHoje,
+      vagasRestantes,
     };
   }
 

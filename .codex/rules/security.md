@@ -25,3 +25,5 @@ DATABASE_URL
 - Toda consulta de leads deve aplicar `grupo = 'Trabalhador'`.
 - Toda consulta de destinatarios para campanha deve exigir `email IS NOT NULL` e `email <> ''`, alem de validacao minima de formato antes de enviar.
 - Nunca enviar para a base inteira.
+- Respeitar limite diario de 100 envios por campanha.
+- Dry-run nao deve bloquear destinatario futuro.

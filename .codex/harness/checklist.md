@@ -17,3 +17,7 @@ Antes de qualquer implementacao futura:
 - [ ] Confirmar que segredos nao serao logados.
 - [ ] Confirmar que scripts terao preview ou dry-run.
 - [ ] Confirmar estrategia de testes.
+- Confirmar que envios reais estao associados a uma campanha.
+- Confirmar que elegiveis aplicam `grupo = 'Trabalhador'`.
+- Confirmar que dry-run nao grava status `enviado`.
+- Confirmar que o limite diario de 100 por campanha e respeitado.

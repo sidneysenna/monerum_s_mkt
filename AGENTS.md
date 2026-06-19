@@ -27,6 +27,11 @@ Regras principais para agentes e assistentes neste repositorio:
 23. Nao incorporar imagens grandes em Base64 nos templates de e-mail. Preferir URL publica quando possivel.
 24. Em templates de e-mail, nao depender apenas de CSS em `<style>`. Estilos criticos devem ser aplicados inline antes do envio.
 25. Templates de e-mail devem ser construidos com compatibilidade real de e-mail marketing: tabelas, CSS inline e estilos criticos aplicados diretamente nos elementos.
+26. Todo envio real deve ser associado a uma campanha.
+27. Um sindicato nao deve receber a mesma campanha mais de uma vez com status `enviado`.
+28. Dry-run nao deve bloquear destinatario futuro.
+29. Toda consulta de campanha deve aplicar `grupo = 'Trabalhador'`.
+30. Respeitar limite diario de 100 envios por campanha.
 
 ## Estado atual
 
@@ -38,6 +43,21 @@ O HTML em `src/modules/emails/infrastructure/templates/campanhas/proposta-sindic
 
 O HTML final de preview/envio deve ter CSS inline nos elementos criticos para preservar a aparencia em clientes de e-mail.
 O template de envio deve priorizar tabelas HTML (`table`, `tr`, `td`) para compatibilidade com Gmail e Outlook.
+
+## Controle de campanhas
+
+Campanha inicial:
+
+```txt
+codigo: CAMPANHA_001
+nome: CAMPANHA 001 - Consciência do problema e apresentando Monerum-S
+slug: consciencia-problema-apresentando-monerum-s
+template: proposta-sindicato-digital
+status: ativa
+limite_diario: 100
+```
+
+As tabelas novas de controle ficam somente no schema `sindicatos_br`. A tabela legada `sindicatos_br.sindicatos` permanece somente leitura.
 
 Chaves obrigatorias:
 

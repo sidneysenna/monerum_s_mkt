@@ -2,6 +2,8 @@
 
 - Usar exclusivamente `sindicatos_br`.
 - Tratar `sindicatos_br.sindicatos` como tabela existente e somente leitura.
+- Tabelas de controle de campanha devem ser criadas somente em `sindicatos_br`.
+- Nao criar FK real para `sindicatos_br.sindicatos`.
 - Toda consulta de sindicatos/leads deve aplicar `grupo = 'Trabalhador'`.
 - Nao criar migration para `sindicatos_br.sindicatos`.
 - Nao alterar a estrutura de `sindicatos_br.sindicatos`.

@@ -43,3 +43,15 @@ GET http://localhost:3000/api/v1/sindicatos?uf=MG&limit=10
 GET http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/preview
 POST http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=1
 ```
+```bash
+pnpm prisma generate
+pnpm prisma migrate dev --name criar_controle_campanhas_email
+pnpm test
+pnpm build
+```
+
+Em ambiente nao interativo, aplicar migration pendente com:
+
+```bash
+pnpm prisma migrate deploy
+```

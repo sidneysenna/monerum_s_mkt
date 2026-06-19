@@ -14,7 +14,8 @@
     "script:preview-campanha": "ts-node -r tsconfig-paths/register src/scripts/preview-campanha.ts",
     "script:validar-leads": "ts-node -r tsconfig-paths/register src/scripts/validar-leads.ts",
     "script:dry-run-campanha": "ts-node -r tsconfig-paths/register src/scripts/dry-run-campanha.ts",
-    "script:executar-campanha": "ts-node -r tsconfig-paths/register src/scripts/executar-campanha.ts"
+    "script:executar-campanha": "ts-node -r tsconfig-paths/register src/scripts/executar-campanha.ts",
+    "script:seed-campanhas": "ts-node -r tsconfig-paths/register src/scripts/seed-campanhas.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.22",

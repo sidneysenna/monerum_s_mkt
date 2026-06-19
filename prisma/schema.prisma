@@ -52,3 +52,44 @@ model Sindicato {
   @@map("sindicatos")
   @@schema("sindicatos_br")
 }
+
+model CampanhaEmail {
+  id            String   @id @default(uuid()) @db.Uuid
+  codigo        String   @unique @db.VarChar(50)
+  slug          String   @unique @db.VarChar(120)
+  nome          String
+  descricao     String?
+  templateId    String   @map("template_id") @db.VarChar(120)
+  status        String   @default("ativa") @db.VarChar(30)
+  limiteDiario  Int      @default(100) @map("limite_diario")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  destinatarios CampanhaEmailDestinatario[]
+
+  @@map("campanhas_email")
+  @@schema("sindicatos_br")
+}
+
+model CampanhaEmailDestinatario {
+  id                String    @id @default(uuid()) @db.Uuid
+  campanhaId        String    @map("campanha_id") @db.Uuid
+  sindicatoId       Int       @map("sindicato_id")
+  email             String
+  emailNormalizado  String    @map("email_normalizado")
+  status            String    @db.VarChar(30)
+  tentativas        Int       @default(0)
+  ultimoErro        String?   @map("ultimo_erro")
+  mailgunMessageId  String?   @map("mailgun_message_id")
+  enviadoEm         DateTime? @map("enviado_em") @db.Timestamp(6)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  campanha CampanhaEmail @relation(fields: [campanhaId], references: [id])
+
+  @@index([campanhaId, status], map: "idx_campanha_email_destinatarios_campanha_status")
+  @@index([sindicatoId], map: "idx_campanha_email_destinatarios_sindicato")
+  @@index([enviadoEm], map: "idx_campanha_email_destinatarios_enviado_em")
+  @@map("campanha_email_destinatarios")
+  @@schema("sindicatos_br")
+}

@@ -39,6 +39,17 @@ O model Prisma `Sindicato` mapeia a tabela existente:
 @@schema("sindicatos_br")
 ```
 
+## Controle de campanhas
+
+Tabelas novas de controle de e-mail podem existir somente em `sindicatos_br`:
+
+```txt
+sindicatos_br.campanhas_email
+sindicatos_br.campanha_email_destinatarios
+```
+
+Nao criar FK real para `sindicatos_br.sindicatos`; usar `sindicato_id` como referencia logica. Nunca tocar o schema `public`.
+
 O comando permitido para atualizar o client e:
 
 ```bash

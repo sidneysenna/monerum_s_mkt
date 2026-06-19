@@ -24,8 +24,7 @@ export class SindicatoMapper {
       sindicato.grau,
       sindicato.ufSede,
       sindicato.localidadeSede,
-      //sindicato.email ?? '',
-      'sidney.senna@gmail.com',  //FIXME: REMOVER ESSA LINHA
+      sindicato.email ?? '',
       sindicato.nomePresidente,
       sindicato.grupo,
     );
