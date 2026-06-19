@@ -12,170 +12,113 @@
             background-color: #f4f7f9;
             color: #333;
         }
-        .email-container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #ffffff;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .header {
-            background-color: #001f3f; /* Azul escuro da logo */
-            padding: 30px;
-            text-align: center;
-        }
-        .header img {
-            max-width: 220px;
-            height: auto;
-        }
-        .content {
-            padding: 40px 30px;
-            line-height: 1.6;
-        }
-        h1 {
-            color: #001f3f;
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
-        .intro {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 25px;
-        }
-        .feature-box {
-            background: #f9fbfc;
-            border-left: 4px solid #0056b3;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            border-radius: 0 4px 4px 0;
-        }
-        .feature-title {
-            font-weight: bold;
-            color: #0056b3;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .pricing-table {
-            width: 100%;
-            background: #001f3f;
-            color: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            margin: 30px 0;
-            text-align: center;
-        }
-        .pricing-title {
-            font-size: 18px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .price-item {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .price-sub {
-            font-size: 14px;
-            opacity: 0.8;
-            font-weight: normal;
-        }
-        .cta-button {
-            display: inline-block;
-            padding: 15px 30px;
-            background-color: #007bff;
-            color: #ffffff !important;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            margin-top: 20px;
-            transition: background 0.3s;
-        }
-        .footer {
-            background: #f4f7f9;
-            padding: 30px;
-            text-align: center;
-            font-size: 14px;
-            color: #777;
-            border-top: 1px solid #eee;
-        }
-        .highlight {
-            color: #0056b3;
-            font-weight: bold;
-        }
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <!-- Header com Logo -->
-        <div class="header">
-            <!-- Substituir pelo Base64 gerado -->
-            <img src="http://monerum.com.br/asets/logo-suprema.png" alt="Suprema Algoritmos">
-        </div>
+<body style="margin:0; padding:0; background-color:#f4f7f9; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; background-color:#f4f7f9; margin:0; padding:0; border-collapse:collapse; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+        <tr>
+            <td align="center" style="padding:20px 10px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:600px; max-width:600px; background-color:#ffffff; border-collapse:collapse; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    <!-- Header com Logo -->
+                    <tr>
+                        <td align="center" bgcolor="#001f3f" style="background-color:#001f3f; padding:30px; text-align:center; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                            <img src="http://monerum.com.br/asets/logo-suprema.png" alt="Suprema Algoritmos" width="220" style="display:block; max-width:220px; height:auto; margin:0 auto; border:0; outline:none; text-decoration:none;">
+                        </td>
+                    </tr>
 
-        <!-- Conteúdo Principal -->
-        <div class="content">
-			<h1><strong>{{NOME_SINDICATO}}</strong></h1>
-			
-            <h1>Olá, Presidente {{NOME_PRESIDENTE}}</h1>
-            
-            <p class="intro">
-                As recentes mudanças nas leis trabalhistas trouxeram um grande desafio para os sindicatos: como manter uma comunicação eficiente com a base e garantir a sustentabilidade financeira de forma moderna, atraente e 100% voluntária?
-            </p>
+                    <!-- Conteúdo Principal -->
+                    <tr>
+                        <td style="padding:40px 30px; line-height:1.6; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333;">
+                            <h1 style="color:#001f3f; font-size:22px; line-height:1.3; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"><strong>{{NOME_SINDICATO}}</strong></h1>
 
-            <p>Para resolver esses gargalos, desenvolvemos o projeto <strong>Sindicato Digital</strong>, uma solução inovadora que opera inteiramente dentro do WhatsApp.</p>
+                            <h1 style="color:#001f3f; font-size:22px; line-height:1.3; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Olá, Presidente {{NOME_PRESIDENTE}}</h1>
 
-            <div class="feature-box">
-                <span class="feature-title">1. Atendimento de Qualidade 24h (Gratuito)</span>
-                Uma Inteligência Artificial treinada com as suas Convenções Coletivas (CCT) responde instantaneamente às dúvidas dos profissionais sobre escalas, pisos e adicionais. Além disso, faz a triagem automatizada de denúncias para o seu jurídico.
-            </div>
+                            <p style="font-size:16px; line-height:1.6; color:#555555; margin:0 0 25px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                As recentes mudanças nas leis trabalhistas trouxeram um grande desafio para os sindicatos: como manter uma comunicação eficiente com a base e garantir a sustentabilidade financeira de forma moderna, atraente e 100% voluntária?
+                            </p>
 
-            <div class="feature-box">
-                <span class="feature-title">2. Controle Absoluto de Benefícios</span>
-                Automatizamos o controle de uso e validade via QR Code no celular do trabalhador. Se ainda não possui um clube de vantagens, nossa estrutura permite cadastrar parceiros locais e criar um do zero.
-            </div>
+                            <p style="font-size:16px; line-height:1.6; color:#333333; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Para resolver esses gargalos, desenvolvemos o projeto <strong>Sindicato Digital</strong>, uma solução inovadora que opera inteiramente dentro do WhatsApp.</p>
 
-            <div class="feature-box">
-                <span class="feature-title">3. Arrecadação Inteligente via Pix</span>
-                O profissional realiza a adesão anual opcional direto no chat. O sistema recebe via Pix, emite a Chave de Acesso Digital e gerencia as renovações de forma 100% automatizada.
-            </div>
-			
-			<div class="feature-box">
-                <span class="feature-title">4. O sindicato define o valor da adesão ao clube e garante receita recorrente</span>
-                Exemplo: Adesão de R$ 200,00/ano. Com 1000 membros o sindicato tem uma receita de R$ 200.000,00 por ano garantida, ou seja, entra no caixa do sindicato quase R$ 20.000,00 por mês.
-            </div>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td style="background-color:#f9fbfc; border-left:4px solid #0056b3; padding:15px 20px; border-radius:0 4px 4px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333; font-size:16px; line-height:1.6;">
+                                        <span style="font-weight:bold; color:#0056b3; display:block; margin-bottom:5px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">1. Atendimento de Qualidade 24h (Gratuito)</span>
+                                        Uma Inteligência Artificial treinada com as suas Convenções Coletivas (CCT) responde instantaneamente às dúvidas dos profissionais sobre escalas, pisos e adicionais. Além disso, faz a triagem automatizada de denúncias para o seu jurídico.
+                                    </td>
+                                </tr>
+                            </table>
 
-            <!-- Proposta Comercial -->
-            <div class="pricing-table">
-                <div class="pricing-title">Proposta Comercial (Modelo Ganha-Ganha)</div>
-                <div class="price-item">
-                    R$ {{VALOR_MENSALIDADE}} <span class="price-sub">/mês</span>
-                    <div class="price-sub">Manutenção, IA e Suporte Técnico</div>
-                </div>
-                <div style="margin: 15px 0; border-top: 1px solid rgba(255,255,255,0.2);"></div>
-                <div class="price-item">
-                    {{VALOR_TAXA}}% <span class="price-sub">de Taxa de Sucesso</span>
-                    <div class="price-sub">Sobre cada adesão anual confirmada</div>
-                </div>
-            </div>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td style="background-color:#f9fbfc; border-left:4px solid #0056b3; padding:15px 20px; border-radius:0 4px 4px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333; font-size:16px; line-height:1.6;">
+                                        <span style="font-weight:bold; color:#0056b3; display:block; margin-bottom:5px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">2. Controle Absoluto de Benefícios</span>
+                                        Automatizamos o controle de uso e validade via QR Code no celular do trabalhador. Se ainda não possui um clube de vantagens, nossa estrutura permite cadastrar parceiros locais e criar um do zero.
+                                    </td>
+                                </tr>
+                            </table>
 
-            <p>O sindicato passa a estar no bolso do trabalhador, otimiza o trabalho da diretoria e garante um fôlego financeiro previsível.</p>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td style="background-color:#f9fbfc; border-left:4px solid #0056b3; padding:15px 20px; border-radius:0 4px 4px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333; font-size:16px; line-height:1.6;">
+                                        <span style="font-weight:bold; color:#0056b3; display:block; margin-bottom:5px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">3. Arrecadação Inteligente via Pix</span>
+                                        O profissional realiza a adesão anual opcional direto no chat. O sistema recebe via Pix, emite a Chave de Acesso Digital e gerencia as renovações de forma 100% automatizada.
+                                    </td>
+                                </tr>
+                            </table>
 
-            <p><strong>Qual o melhor dia e horário para uma breve demonstração virtual nesta semana?</strong></p>
-            
-            <div style="text-align: center;">
-                <a href="https://wa.me/{{CONTATO_WHATSAPP}}" class="cta-button">AGENDAR DEMONSTRAÇÃO</a>
-            </div>
-        </div>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td style="background-color:#f9fbfc; border-left:4px solid #0056b3; padding:15px 20px; border-radius:0 4px 4px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color:#333333; font-size:16px; line-height:1.6;">
+                                        <span style="font-weight:bold; color:#0056b3; display:block; margin-bottom:5px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">4. O sindicato define o valor da adesão ao clube e garante receita recorrente</span>
+                                        Exemplo: Adesão de R$ 500,00/ano. Com 1000 membros o sindicato tem uma receita de R$ 500.000,00 por ano garantida, ou seja, entra no caixa do sindicato mais de R$ 40.000,00 por mês.
+                                    </td>
+                                </tr>
+                            </table>
 
-        <!-- Rodapé -->
-        <div class="footer">
-            <p>Atenciosamente,</p>
-            <p><strong>{{VENDEDOR_NOME}}</strong><br>
-            Contato: {{VENDEDOR_CONTATO}}</p>
-            <p style="font-size: 12px; margin-top: 20px;">© 2026 Suprema Algoritmos - Tecnologia para Entidades Sindicais</p>
-        </div>
-    </div>
+                            <!-- Proposta Comercial -->
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; background-color:#001f3f; color:#ffffff; padding:0; border-radius:8px; margin:30px 0; text-align:center; border-collapse:collapse; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td align="center" style="background-color:#001f3f; color:#ffffff; padding:25px; text-align:center; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                        <div style="font-size:18px; margin:0 0 15px 0; text-transform:uppercase; letter-spacing:1px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Proposta Comercial (Modelo Ganha-Ganha)</div>
+                                        <div style="font-size:24px; font-weight:bold; margin:10px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                            R$ {{VALOR_MENSALIDADE}} <span style="font-size:14px; opacity:0.8; font-weight:normal; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">/mês</span>
+                                            <div style="font-size:14px; opacity:0.8; font-weight:normal; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Manutenção, IA e Suporte Técnico</div>
+                                        </div>
+                                        <div style="margin:15px 0; border-top:1px solid rgba(255,255,255,0.2); line-height:1px; font-size:1px;">&nbsp;</div>
+                                        <div style="font-size:24px; font-weight:bold; margin:10px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                            {{VALOR_TAXA}}% <span style="font-size:14px; opacity:0.8; font-weight:normal; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">de Taxa de Sucesso</span>
+                                            <div style="font-size:14px; opacity:0.8; font-weight:normal; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Sobre cada adesão anual confirmada</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="font-size:16px; line-height:1.6; color:#333333; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">O sindicato passa a estar no bolso do trabalhador, otimiza o trabalho da diretoria e garante um fôlego financeiro previsível.</p>
+
+                            <p style="font-size:16px; line-height:1.6; color:#333333; margin:0 0 20px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"><strong>Qual o melhor dia e horário para uma breve demonstração virtual nesta semana?</strong></p>
+
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; border-collapse:collapse; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                <tr>
+                                    <td align="center" style="text-align:center; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                                        <a href="https://wa.me/{{CONTATO_WHATSAPP}}" target="_blank" rel="noopener noreferrer" style="display:inline-block; padding:15px 30px; background-color:#007bff; color:#ffffff; text-decoration:none; border-radius:50px; font-weight:bold; margin-top:20px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">AGENDAR DEMONSTRAÇÃO</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Rodapé -->
+                    <tr>
+                        <td align="center" style="background-color:#f4f7f9; padding:30px; text-align:center; font-size:14px; line-height:1.5; color:#777777; border-top:1px solid #eeeeee; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                            <p style="margin:0 0 10px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Atenciosamente,</p>
+                            <p style="margin:0 0 10px 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;"><strong>{{VENDEDOR_NOME}}</strong><br>
+                            Contato: {{VENDEDOR_CONTATO}}</p>
+                            <p style="font-size:12px; margin:20px 0 0 0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">© 2026 Suprema Algoritmos - Tecnologia para Entidades Sindicais</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

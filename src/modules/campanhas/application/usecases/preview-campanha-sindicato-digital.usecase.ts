@@ -5,7 +5,7 @@ import { PreviewCampanhaQueryDto } from "../dto/preview-campanha-query.dto";
 
 const CAMPANHA_ID = "proposta-sindicato-digital";
 const PLACEHOLDER_DEFAULTS = {
-  VALOR_MENSALIDADE: "200,00",
+  VALOR_MENSALIDADE: "500,00",
   VALOR_TAXA: "10",
   CONTATO_WHATSAPP: "5531984791973",
   VENDEDOR_NOME: "SIDNEY SENNA",

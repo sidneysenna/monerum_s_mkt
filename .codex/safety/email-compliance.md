@@ -14,6 +14,7 @@ Regras futuras para campanhas:
 - dry-run nao deve chamar Mailgun;
 - renderizar conteudo por destinatario;
 - aplicar CSS inline critico antes do envio para preservar formatacao em clientes de e-mail;
+- priorizar estrutura de tabelas para fidelidade visual em Gmail, Outlook e outros clientes;
 - bloquear destinatario quando sobrar placeholder obrigatorio;
 - evitar imagens grandes em Base64 no HTML para reduzir risco de corte em clientes de e-mail;
 - limitar lote;

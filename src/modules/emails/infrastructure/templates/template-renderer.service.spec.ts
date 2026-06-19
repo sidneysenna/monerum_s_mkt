@@ -6,6 +6,7 @@ import { HtmlToTextService } from "../../../templates/application/services/html-
 import { TemplateRendererService } from "./template-renderer.service";
 
 describe("TemplateRendererService", () => {
+  const formerMonthlyValue = ["200", "00"].join(",");
   const templatePath = join(
     process.cwd(),
     "src",
@@ -37,7 +38,7 @@ describe("TemplateRendererService", () => {
     const result = await service.render("proposta-sindicato-digital", {
       NOME_SINDICATO: "SINDICATO TESTE",
       NOME_PRESIDENTE: "JOAO",
-      VALOR_MENSALIDADE: "200,00",
+      VALOR_MENSALIDADE: "500,00",
       VALOR_TAXA: "10",
       CONTATO_WHATSAPP: "5531984791973",
       VENDEDOR_NOME: "SIDNEY SENNA",
@@ -45,20 +46,19 @@ describe("TemplateRendererService", () => {
     });
 
     expect(result.subject).toContain("modernizar o atendimento digital");
+    expect(result.html).toContain('table role="presentation"');
+    expect(result.html).toContain('width="600"');
     expect(result.html).toContain(
-      `body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;`,
+      `font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`,
     );
     expect(result.html).toContain(
-      `class="email-container" style="max-width: 600px; margin: 20px auto; background: #ffffff;`,
+      `background-color:#001f3f; padding:30px; text-align:center;`,
     );
     expect(result.html).toContain(
-      `class="header" style="background-color: #001f3f; padding: 30px; text-align: center;`,
+      `background-color:#007bff; color:#ffffff; text-decoration:none;`,
     );
     expect(result.html).toContain(
-      `class="cta-button" style="display: inline-block; padding: 15px 30px; background-color: #007bff; color: #ffffff !important;`,
-    );
-    expect(result.html).toContain(
-      `class="footer" style="background: #f4f7f9; padding: 30px; text-align: center; font-size: 14px; color: #777;`,
+      `background-color:#f4f7f9; padding:30px; text-align:center; font-size:14px;`,
     );
     expect(result.html).not.toContain("data:image/png;base64");
     expect(result.html).toContain(
@@ -66,7 +66,8 @@ describe("TemplateRendererService", () => {
     );
     expect(result.html).toContain("<strong>SINDICATO TESTE</strong>");
     expect(result.html).toContain("Presidente JOAO");
-    expect(result.html).toContain("R$ 200,00");
+    expect(result.html).toContain("R$ 500,00");
+    expect(result.html).not.toContain(formerMonthlyValue);
     expect(result.html).toContain("10%");
     expect(result.html).toContain("https://wa.me/5531984791973");
     expect(result.html).toContain("<strong>SIDNEY SENNA</strong>");
@@ -75,6 +76,8 @@ describe("TemplateRendererService", () => {
     );
     expect(result.text).toContain("SINDICATO TESTE");
     expect(result.text).toContain("Presidente JOAO");
+    expect(result.text).toContain("R$ 500,00");
+    expect(result.text).not.toContain(formerMonthlyValue);
     expect(result.text).not.toContain("{{NOME_SINDICATO}}");
   });
 });

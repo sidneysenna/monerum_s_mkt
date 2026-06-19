@@ -56,6 +56,15 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
 
     expect(result.dryRun).toBe(true);
     expect(result.envioRealExecutado).toBe(false);
+    if (result.dryRun === true) {
+      expect(result.placeholders).toEqual({
+        VALOR_MENSALIDADE: "500,00",
+        VALOR_TAXA: "10",
+        CONTATO_WHATSAPP: "5531984791973",
+        VENDEDOR_NOME: "SIDNEY SENNA",
+        VENDEDOR_CONTATO: "sidney.senna@supremaalgoritmos.com.br",
+      });
+    }
     expect(enviarEmailService.enviar).not.toHaveBeenCalled();
     expect(templateRenderer.render).not.toHaveBeenCalled();
   });
@@ -131,7 +140,7 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       expect.objectContaining({
         NOME_SINDICATO: "Sindicato A",
         NOME_PRESIDENTE: "Maria",
-        VALOR_MENSALIDADE: "200,00",
+        VALOR_MENSALIDADE: "500,00",
         VALOR_TAXA: "10",
         CONTATO_WHATSAPP: "5531984791973",
         VENDEDOR_NOME: "SIDNEY SENNA",

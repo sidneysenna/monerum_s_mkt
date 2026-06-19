@@ -229,7 +229,7 @@ src/modules/emails/infrastructure/templates/campanhas/proposta-sindicato-digital
 
 O `template.html` desta campanha deve permanecer igual ao anexo original, com uma excecao autorizada: a logo foi trocada de Base64 para URL externa para evitar HTML grande e corte em clientes de e-mail como Gmail. Nao reformatar, minificar, corrigir, remover CSS ou alterar o layout.
 
-Templates de e-mail devem usar CSS inline para preservar formatacao em clientes como Gmail e Outlook. O preview retorna o HTML final ja renderizado, com as chaves substituidas e estilos criticos aplicados inline. O bloco `<style>` pode permanecer como fallback, mas o envio nao depende apenas dele.
+Templates de e-mail devem usar estrutura baseada em tabelas e CSS inline para maior fidelidade visual em clientes como Gmail, Outlook e outros. O preview retorna o HTML final ja renderizado, com as chaves substituidas e estilos criticos aplicados inline. O bloco `<style>` pode permanecer como fallback, mas o envio nao depende apenas dele.
 
 Logo usada no HTML:
 
@@ -242,12 +242,14 @@ Placeholders obrigatorios:
 ```txt
 NOME_SINDICATO = denominacao
 NOME_PRESIDENTE = nomePresidente
-VALOR_MENSALIDADE = 200,00
+VALOR_MENSALIDADE = 500,00
 VALOR_TAXA = 10
 CONTATO_WHATSAPP = 5531984791973
 VENDEDOR_NOME = SIDNEY SENNA
 VENDEDOR_CONTATO = sidney.senna@supremaalgoritmos.com.br
 ```
+
+VALOR_MENSALIDADE padrao da campanha: 500,00.
 
 Para cada destinatario, a API renderiza o HTML individualmente e gera o TXT a partir do HTML ja renderizado. Se qualquer placeholder obrigatorio sobrar no HTML ou TXT, o envio daquele destinatario e bloqueado.
 

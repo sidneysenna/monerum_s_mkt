@@ -24,7 +24,7 @@ const REQUIRED_PLACEHOLDERS = [
   "VENDEDOR_CONTATO",
 ];
 const FIXED_PLACEHOLDERS = {
-  VALOR_MENSALIDADE: "200,00",
+  VALOR_MENSALIDADE: "500,00",
   VALOR_TAXA: "10",
   CONTATO_WHATSAPP: "5531984791973",
   VENDEDOR_NOME: "SIDNEY SENNA",
@@ -51,6 +51,7 @@ export type EnviarCampanhaSindicatoDigitalResponse =
       dryRun: true;
       envioRealExecutado: false;
       filtroObrigatorio: { grupo: typeof REQUIRED_GROUP };
+      placeholders: typeof FIXED_PLACEHOLDERS;
       destinatariosEncontrados: number;
       destinatarios: DestinatarioDryRun[];
     }
@@ -98,6 +99,7 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
         dryRun: true,
         envioRealExecutado: false,
         filtroObrigatorio: { grupo: REQUIRED_GROUP },
+        placeholders: FIXED_PLACEHOLDERS,
         destinatariosEncontrados: destinatarios.length,
         destinatarios: destinatarios.map((destinatario) =>
           this.toDryRunDestinatario(destinatario),
