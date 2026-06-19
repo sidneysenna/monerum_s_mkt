@@ -25,6 +25,8 @@ src/modules/emails/infrastructure/templates/
 - Nao alterar, reformatar, minificar, corrigir, remover CSS ou alterar layout do `template.html` de `proposta-sindicato-digital`.
 - Nao incorporar imagens grandes em Base64 nos templates de e-mail. Preferir URL publica quando possivel.
 - A logo de `proposta-sindicato-digital` deve usar `http://monerum.com.br/asets/logo-suprema.png`.
+- Em templates de e-mail, nao depender apenas de CSS em `<style>`. Estilos criticos devem ser aplicados inline no HTML final antes do preview/envio.
+- O TXT deve ser extraido do HTML final ja renderizado e com CSS inline aplicado.
 - Template remoto e proibido.
 - Nao executar `eval` para variaveis.
 

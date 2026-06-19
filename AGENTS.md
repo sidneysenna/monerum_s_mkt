@@ -25,6 +25,7 @@ Regras principais para agentes e assistentes neste repositorio:
 21. Usar pnpm.
 22. Manter arquitetura modular.
 23. Nao incorporar imagens grandes em Base64 nos templates de e-mail. Preferir URL publica quando possivel.
+24. Em templates de e-mail, nao depender apenas de CSS em `<style>`. Estilos criticos devem ser aplicados inline antes do envio.
 
 ## Estado atual
 
@@ -33,6 +34,8 @@ Modo atual: API HTTP versionada em `/api/v1`, com leitura de sindicatos filtrada
 ## Campanha proposta-sindicato-digital
 
 O HTML em `src/modules/emails/infrastructure/templates/campanhas/proposta-sindicato-digital/template.html` deve permanecer igual ao anexo original, exceto pela troca autorizada da logo Base64 por `http://monerum.com.br/asets/logo-suprema.png`. Nao reformatar, minificar, corrigir, remover CSS ou alterar layout.
+
+O HTML final de preview/envio deve ter CSS inline nos elementos criticos para preservar a aparencia em clientes de e-mail.
 
 Chaves obrigatorias:
 

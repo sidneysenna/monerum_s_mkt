@@ -229,6 +229,8 @@ src/modules/emails/infrastructure/templates/campanhas/proposta-sindicato-digital
 
 O `template.html` desta campanha deve permanecer igual ao anexo original, com uma excecao autorizada: a logo foi trocada de Base64 para URL externa para evitar HTML grande e corte em clientes de e-mail como Gmail. Nao reformatar, minificar, corrigir, remover CSS ou alterar o layout.
 
+Templates de e-mail devem usar CSS inline para preservar formatacao em clientes como Gmail e Outlook. O preview retorna o HTML final ja renderizado, com as chaves substituidas e estilos criticos aplicados inline. O bloco `<style>` pode permanecer como fallback, mas o envio nao depende apenas dele.
+
 Logo usada no HTML:
 
 ```txt

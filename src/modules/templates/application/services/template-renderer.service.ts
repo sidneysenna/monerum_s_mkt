@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { EmailCssInlinerService } from "./email-css-inliner.service";
 import { HtmlToTextService } from "./html-to-text.service";
 
 interface TemplateMetadata {
@@ -19,7 +20,10 @@ export interface RenderedTemplate {
 
 @Injectable()
 export class TemplateRendererService {
-  constructor(private readonly htmlToTextService: HtmlToTextService) {}
+  constructor(
+    private readonly htmlToTextService: HtmlToTextService,
+    private readonly emailCssInlinerService: EmailCssInlinerService,
+  ) {}
 
   async render(
     campanhaId: string,
@@ -45,12 +49,11 @@ export class TemplateRendererService {
 
     const metadata = JSON.parse(metadataRaw) as TemplateMetadata;
     const renderedHtml = this.replaceVariables(html, variaveis);
-
-    //console.log('html:',renderedHtml);
+    const finalHtml = this.emailCssInlinerService.inline(renderedHtml);
 
     return {
-      html: renderedHtml,
-      text: this.htmlToTextService.convert(renderedHtml),
+      html: finalHtml,
+      text: this.htmlToTextService.convert(finalHtml),
       subject: this.replaceVariables(metadata.assunto, variaveis),
     };
   }
