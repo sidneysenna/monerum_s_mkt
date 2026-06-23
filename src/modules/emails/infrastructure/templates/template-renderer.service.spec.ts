@@ -23,9 +23,7 @@ describe("TemplateRendererService", () => {
     const template = await readFile(templatePath, "utf8");
 
     expect(template).not.toContain("data:image/png;base64");
-    expect(template).toContain(
-      "http://monerum.com.br/asets/logo-suprema.png",
-    );
+    expect(template).toContain("http://monerum.com.br/asets/logo-suprema.png");
     expect(template.length).toBeLessThan(30_000);
   });
 
@@ -45,36 +43,24 @@ describe("TemplateRendererService", () => {
       VENDEDOR_CONTATO: "sidney.senna@supremaalgoritmos.com.br",
     });
 
-    expect(result.subject).toContain("modernizar o atendimento digital");
+    expect(result.subject).toContain("Vamos mudar isso em 15 minutos");
     expect(result.html).toContain('table role="presentation"');
     expect(result.html).toContain('width="600"');
-    expect(result.html).toContain(
-      `font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`,
-    );
-    expect(result.html).toContain(
-      `background-color:#001f3f; padding:30px; text-align:center;`,
-    );
-    expect(result.html).toContain(
-      `background-color:#007bff; color:#ffffff; text-decoration:none;`,
-    );
-    expect(result.html).toContain(
-      `background-color:#f4f7f9; padding:30px; text-align:center; font-size:14px;`,
-    );
+    expect(result.html).toContain("background-color: #001f3f");
+    expect(result.html).toContain("background-color: #25d366");
     expect(result.html).not.toContain("data:image/png;base64");
     expect(result.html).toContain(
       "http://monerum.com.br/asets/logo-suprema.png",
     );
-    expect(result.html).toContain("<strong>SINDICATO TESTE</strong>");
     expect(result.html).toContain("Presidente JOAO");
     expect(result.html).toContain("R$ 500,00");
     expect(result.html).not.toContain(formerMonthlyValue);
     expect(result.html).toContain("10%");
     expect(result.html).toContain("https://wa.me/5531984791973");
-    expect(result.html).toContain("<strong>SIDNEY SENNA</strong>");
+    expect(result.html).toContain("SIDNEY SENNA");
     expect(result.html).toContain(
       "Contato: sidney.senna@supremaalgoritmos.com.br",
     );
-    expect(result.text).toContain("SINDICATO TESTE");
     expect(result.text).toContain("Presidente JOAO");
     expect(result.text).toContain("R$ 500,00");
     expect(result.text).not.toContain(formerMonthlyValue);

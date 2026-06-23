@@ -16,7 +16,7 @@ const CAMPANHA_INICIAL = {
   slug: "consciencia-problema-apresentando-monerum-s",
   templateId: "proposta-sindicato-digital",
   status: "ativa",
-  limiteDiario: 100,
+  limiteDiario: Number(process.env.EMAIL_DAILY_LIMIT) || 1000,
 } as const;
 
 interface SindicatoElegivelRow {

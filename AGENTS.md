@@ -31,7 +31,7 @@ Regras principais para agentes e assistentes neste repositorio:
 27. Um sindicato nao deve receber a mesma campanha mais de uma vez com status `enviado`.
 28. Dry-run nao deve bloquear destinatario futuro.
 29. Toda consulta de campanha deve aplicar `grupo = 'Trabalhador'`.
-30. Respeitar limite diario de 100 envios por campanha.
+30. Respeitar limite diario de 1000 envios por campanha.
 
 ## Estado atual
 
@@ -54,7 +54,7 @@ nome: CAMPANHA 001 - Consciência do problema e apresentando Monerum-S
 slug: consciencia-problema-apresentando-monerum-s
 template: proposta-sindicato-digital
 status: ativa
-limite_diario: 100
+limite_diario: 1000
 ```
 
 As tabelas novas de controle ficam somente no schema `sindicatos_br`. A tabela legada `sindicatos_br.sindicatos` permanece somente leitura.

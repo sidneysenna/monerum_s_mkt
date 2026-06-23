@@ -61,7 +61,7 @@ model CampanhaEmail {
   descricao     String?
   templateId    String   @map("template_id") @db.VarChar(120)
   status        String   @default("ativa") @db.VarChar(30)
-  limiteDiario  Int      @default(100) @map("limite_diario")
+  limiteDiario  Int      @default(1000) @map("limite_diario")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
 

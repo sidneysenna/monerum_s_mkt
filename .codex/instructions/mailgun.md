@@ -19,12 +19,14 @@ A integracao com Mailgun deve usar `fetch` nativo do Node.js.
 
 - Nao enviar e-mail real por padrao.
 - Bloquear envio real sem `EMAIL_SENDING_ENABLED=true`, `EMAIL_DRY_RUN=false`, `dryRun=false` e `confirmacao=ENVIAR`.
-- Limitar envio controlado a no maximo 10 destinatarios nesta etapa.
+- Validar `limit` contra `EMAIL_MAX_REQUEST_LIMIT`.
 - Toda busca de destinatarios deve aplicar `grupo = 'Trabalhador'`.
 - Todo envio real deve ser associado a uma campanha.
 - Nao reenviar a mesma campanha para sindicato ja registrado com status `enviado`.
 - Dry-run nao deve gravar status `enviado`.
-- Respeitar limite diario de 100 envios por campanha.
+- Respeitar limite diario de 1000 envios por campanha.
+- Aplicar delay entre envios reais e pausa entre lotes.
+- Tratar 429 com retry/backoff e respeitar `Retry-After`.
 - Exigir campanha criada antes de envio.
 - Nao enviar para registro sem e-mail valido.
 - Renderizar HTML e TXT por destinatario.

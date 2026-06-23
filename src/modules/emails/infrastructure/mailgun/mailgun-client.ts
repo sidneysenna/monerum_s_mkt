@@ -4,6 +4,7 @@ import {
   MailgunSendMessageInput,
   MailgunSendMessageResult,
 } from "./mailgun.types";
+import { MailgunHttpError, MailgunRateLimitError } from "./mailgun.errors";
 
 @Injectable()
 export class MailgunClient {
@@ -38,9 +39,60 @@ export class MailgunClient {
     });
 
     if (!response.ok) {
-      throw new Error(`Mailgun retornou status ${response.status}.`);
+      const responseBody = await this.readSanitizedBody(response);
+      const retryAfterSeconds = this.parseRetryAfter(
+        response.headers.get("Retry-After"),
+      );
+
+      if (response.status === 429) {
+        throw new MailgunRateLimitError(
+          "Mailgun retornou status 429.",
+          retryAfterSeconds,
+          responseBody,
+        );
+      }
+
+      throw new MailgunHttpError(
+        `Mailgun retornou status ${response.status}.`,
+        response.status,
+        responseBody,
+      );
     }
 
     return (await response.json()) as MailgunSendMessageResult;
+  }
+
+  private async readSanitizedBody(
+    response: Response,
+  ): Promise<string | undefined> {
+    try {
+      const body = await response.text();
+      const sanitized = body
+        .replace(/Basic\s+[A-Za-z0-9+/=]+/g, "Basic [redacted]")
+        .replace(/api:key-[A-Za-z0-9_-]+/g, "api:[redacted]")
+        .slice(0, 500);
+
+      return sanitized || undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private parseRetryAfter(value: string | null): number | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const seconds = Number(value);
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return Math.ceil(seconds);
+    }
+
+    const dateMs = Date.parse(value);
+    if (Number.isNaN(dateMs)) {
+      return undefined;
+    }
+
+    return Math.max(Math.ceil((dateMs - Date.now()) / 1000), 0);
   }
 }

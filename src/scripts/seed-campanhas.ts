@@ -11,14 +11,14 @@ async function main(): Promise<void> {
       slug: "consciencia-problema-apresentando-monerum-s",
       templateId: "proposta-sindicato-digital",
       status: "ativa",
-      limiteDiario: 100,
+      limiteDiario: Number(process.env.EMAIL_DAILY_LIMIT) || 1000,
     },
     update: {
       nome: "CAMPANHA 001 - Consciência do problema e apresentando Monerum-S",
       slug: "consciencia-problema-apresentando-monerum-s",
       templateId: "proposta-sindicato-digital",
       status: "ativa",
-      limiteDiario: 100,
+      limiteDiario: Number(process.env.EMAIL_DAILY_LIMIT) || 1000,
     },
   });
 

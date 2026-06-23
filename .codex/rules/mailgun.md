@@ -14,5 +14,7 @@
 - Nao expor `MAILGUN_API_KEY` em logs ou erros.
 - Envio real exige `EMAIL_SENDING_ENABLED=true`, `EMAIL_DRY_RUN=false`, `dryRun=false` e `confirmacao=ENVIAR`.
 - Dry-run e padrao e nao pode chamar Mailgun.
-- Limite maximo de envio nesta etapa: 10 destinatarios.
+- `limit` deve respeitar `EMAIL_MAX_REQUEST_LIMIT`.
+- Envio real deve aplicar throttle entre destinatarios e pausa entre lotes.
+- 429 deve ter retry/backoff e respeitar `Retry-After`.
 - Toda selecao de destinatarios deve aplicar `grupo = 'Trabalhador'`.

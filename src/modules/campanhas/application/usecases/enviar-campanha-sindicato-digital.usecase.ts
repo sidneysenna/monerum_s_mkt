@@ -1,5 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 
+import { EmailRetryService } from "../../../emails/application/services/email-retry.service";
 import { EnviarEmailService } from "../../../emails/application/services/enviar-email.service";
 import { EmailAddress } from "../../../emails/domain/value-objects/email-address.vo";
 import { TemplateRendererService } from "../../../emails/infrastructure/templates/template-renderer.service";
@@ -17,7 +18,11 @@ import { EnviarCampanhaQueryDto } from "../dto/enviar-campanha-query.dto";
 const CAMPANHA_CODIGO = "CAMPANHA_001";
 const TEMPLATE_ID = "proposta-sindicato-digital";
 const DEFAULT_LIMIT = 1;
-const MAX_LIMIT = 100;
+const DEFAULT_MAX_REQUEST_LIMIT = 1000;
+const DEFAULT_BATCH_SIZE = 10;
+const DEFAULT_BATCH_INTERVAL_MS = 60000;
+const DEFAULT_SEND_INTERVAL_MS = 7000;
+const RESULTS_PREVIEW_LIMIT = 20;
 const REQUIRED_GROUP = "Trabalhador";
 const REQUIRED_PLACEHOLDERS = [
   "NOME_SINDICATO",
@@ -33,7 +38,7 @@ const FIXED_PLACEHOLDERS = {
   VALOR_TAXA: "10",
   CONTATO_WHATSAPP: "5531984791973",
   VENDEDOR_NOME: "SIDNEY SENNA",
-  VENDEDOR_CONTATO: "(31) 98479-1973 / sidney.senna@supremaalgoritmos.com.br",
+  VENDEDOR_CONTATO: "sidney.senna@supremaalgoritmos.com.br",
 } as const;
 
 interface DestinatarioDryRun {
@@ -46,17 +51,28 @@ interface DestinatarioDryRun {
 interface ResultadoEnvio {
   id: number;
   emailMascarado: string;
-  status: "enviado" | "falha";
+  status: "enviado" | "falha" | "ja_enviado";
   erro?: string;
 }
 
 interface CampanhaEnvioMeta {
-  campanha: typeof CAMPANHA_CODIGO;
+  campanha: {
+    codigo: typeof CAMPANHA_CODIGO;
+    nome: string;
+    limiteDiario: number;
+  };
   template: typeof TEMPLATE_ID;
   filtroObrigatorio: { grupo: typeof REQUIRED_GROUP };
-  limiteDiario: number;
-  enviadosHoje: number;
-  vagasRestantes: number;
+  limiteSolicitado: number;
+  limiteEfetivo: number;
+  enviadosHojeAntes: number;
+  vagasRestantesAntes: number;
+  throttle: {
+    batchSize: number;
+    batchIntervalMs: number;
+    sendIntervalMs: number;
+    retryMaxAttempts: number;
+  };
 }
 
 export type EnviarCampanhaSindicatoDigitalResponse =
@@ -64,8 +80,9 @@ export type EnviarCampanhaSindicatoDigitalResponse =
       dryRun: true;
       envioRealExecutado: false;
       placeholders: typeof FIXED_PLACEHOLDERS;
-      destinatariosEncontrados: number;
-      destinatarios: DestinatarioDryRun[];
+      destinatariosElegiveis: number;
+      destinatariosPreview: DestinatarioDryRun[];
+      observacao: string;
       motivo?: "limite_diario_atingido";
     })
   | (CampanhaEnvioMeta & {
@@ -74,6 +91,8 @@ export type EnviarCampanhaSindicatoDigitalResponse =
       totalSelecionados: number;
       totalEnviados: number;
       totalFalhas: number;
+      totalRateLimit: number;
+      resultadosPreview: ResultadoEnvio[];
       resultados: ResultadoEnvio[];
     });
 
@@ -86,6 +105,7 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     private readonly destinatariosRepository: CampanhaEmailDestinatariosRepository,
     private readonly templateRenderer: TemplateRendererService,
     private readonly enviarEmailService: EnviarEmailService,
+    private readonly emailRetryService: EmailRetryService,
   ) {}
 
   async execute(
@@ -94,22 +114,34 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     const campanha = await this.campanhasRepository.garantirCampanhaInicial();
     const resumo = await this.campanhasRepository.obterResumo(campanha);
     const vagasRestantes = resumo.vagasRestantesHoje;
+    const limiteSolicitado = this.normalizeRequestedLimit(query.limit);
+    const limit = this.normalizeEffectiveLimit(
+      limiteSolicitado,
+      vagasRestantes,
+    );
+    const throttle = this.getThrottleConfig();
 
     if (vagasRestantes <= 0) {
       return {
-        ...this.buildMeta(campanha.limiteDiario, resumo.enviadosHoje, 0),
+        ...this.buildMeta(
+          campanha.nome,
+          campanha.limiteDiario,
+          limiteSolicitado,
+          0,
+          resumo.enviadosHoje,
+          0,
+          throttle,
+        ),
         dryRun: true,
         envioRealExecutado: false,
         placeholders: FIXED_PLACEHOLDERS,
-        destinatariosEncontrados: 0,
-        destinatarios: [],
+        destinatariosElegiveis: 0,
+        destinatariosPreview: [],
+        observacao: "Dry-run nao chama Mailgun e nao grava envio.",
         motivo: "limite_diario_atingido",
       };
     }
 
-    const limit = this.normalizeLimit(
-      Math.min(query.limit ?? DEFAULT_LIMIT, vagasRestantes),
-    );
     const dryRun = query.dryRun ?? true;
     const destinatarios = (
       await this.campanhasRepository.listarElegiveis({
@@ -123,91 +155,136 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
       })
     ).filter((destinatario) => EmailAddress.isValid(destinatario.email));
 
-    const canSendReal = this.canSendReal(dryRun, query.confirmacao);
+    const canSendReal = this.canSendReal(
+      dryRun,
+      query.confirmacao,
+      campanha.status,
+    );
 
     if (!canSendReal) {
       return {
         ...this.buildMeta(
+          campanha.nome,
           campanha.limiteDiario,
+          limiteSolicitado,
+          limit,
           resumo.enviadosHoje,
           vagasRestantes,
+          throttle,
         ),
         dryRun: true,
         envioRealExecutado: false,
         placeholders: FIXED_PLACEHOLDERS,
-        destinatariosEncontrados: destinatarios.length,
-        destinatarios: destinatarios.map((destinatario) =>
-          this.toDryRunDestinatario(destinatario),
-        ),
+        destinatariosElegiveis: destinatarios.length,
+        destinatariosPreview: destinatarios
+          .slice(0, RESULTS_PREVIEW_LIMIT)
+          .map((destinatario) => this.toDryRunDestinatario(destinatario)),
+        observacao: "Dry-run nao chama Mailgun e nao grava envio.",
       };
     }
 
     const from = this.getFrom();
     const resultados: ResultadoEnvio[] = [];
+    const batches = this.chunk(destinatarios, throttle.batchSize);
+    let shouldStop = false;
 
-    for (const destinatario of destinatarios) {
-      
-      console.log('DESTINATARIO:', destinatario);
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) {
+      const batch = batches[batchIndex];
 
-      try {
-        const template = await this.templateRenderer.render(
-          TEMPLATE_ID,
-          this.buildPlaceholders(destinatario),
-        );
-        this.templateRenderer.validateNoUnresolvedPlaceholders(
-          template,
-          REQUIRED_PLACEHOLDERS,
-        );
+      for (let index = 0; index < batch.length; index += 1) {
+        const destinatario = batch[index];
 
-        const envio = await this.enviarEmailService.enviar({
-          from,
-          to: {
-            email: destinatario.email,
-            nome: destinatario.denominacao,
-          },
-          subject: template.subject,
-          text: template.text,
-          html: template.html,
-        });
+        try {
+          const template = await this.templateRenderer.render(
+            TEMPLATE_ID,
+            this.buildPlaceholders(destinatario),
+          );
+          this.templateRenderer.validateNoUnresolvedPlaceholders(
+            template,
+            REQUIRED_PLACEHOLDERS,
+          );
 
-        const registro = await this.destinatariosRepository.registrarResultado({
-          campanhaId: campanha.id,
-          sindicatoId: destinatario.id,
-          email: destinatario.email,
-          status: "enviado",
-          mailgunMessageId: envio.providerMessageId,
-        });
+          const retryResult = await this.emailRetryService.execute(() =>
+            this.enviarEmailService.enviar({
+              from,
+              to: {
+                email: destinatario.email,
+                nome: destinatario.denominacao,
+              },
+              subject: template.subject,
+              text: template.text,
+              html: template.html,
+            }),
+          );
 
-        resultados.push({
-          id: destinatario.id,
-          emailMascarado: this.maskEmail(destinatario.email),
-          status: registro ? "enviado" : "falha",
-          erro: registro ? undefined : "Destinatario ja registrado como enviado.",
-        });
-      } catch (error) {
-        console.error(error);
-        await this.destinatariosRepository.registrarResultado({
-          campanhaId: campanha.id,
-          sindicatoId: destinatario.id,
-          email: destinatario.email,
-          status: "falhou",
-          erro: this.sanitizeError(error),
-        });
+          if (!retryResult.ok) {
+            await this.registrarFalha(
+              campanha.id,
+              destinatario,
+              retryResult.sanitizedError,
+              resultados,
+            );
+            shouldStop = retryResult.rateLimit && throttle.stopOnRateLimit;
+          } else {
+            const registro =
+              await this.destinatariosRepository.registrarResultado({
+                campanhaId: campanha.id,
+                sindicatoId: destinatario.id,
+                email: destinatario.email,
+                status: "enviado",
+                mailgunMessageId: retryResult.value.providerMessageId,
+              });
 
-        resultados.push({
-          id: destinatario.id,
-          emailMascarado: this.maskEmail(destinatario.email),
-          status: "falha",
-          erro: this.sanitizeError(error),
-        });
+            resultados.push({
+              id: destinatario.id,
+              emailMascarado: this.maskEmail(destinatario.email),
+              status: registro ? "enviado" : "ja_enviado",
+              erro: registro ? undefined : "Destinatario ja enviado.",
+            });
+          }
+        } catch (error) {
+          await this.registrarFalha(
+            campanha.id,
+            destinatario,
+            this.sanitizeError(error),
+            resultados,
+          );
+        }
+
+        if (shouldStop) {
+          break;
+        }
+
+        const hasNextInBatch = index < batch.length - 1;
+        const hasNextBatch = batchIndex < batches.length - 1;
+        if (hasNextInBatch || hasNextBatch) {
+          await this.sleep(throttle.sendIntervalMs);
+        }
+      }
+
+      if (shouldStop) {
+        break;
+      }
+
+      if (batchIndex < batches.length - 1) {
+        await this.sleep(throttle.batchIntervalMs);
       }
     }
 
+    const includeResults = query.includeResults === true;
+    const totalRateLimit = resultados.filter(
+      (resultado) => resultado.erro === "rate_limit_429",
+    ).length;
+
     return {
       ...this.buildMeta(
+        campanha.nome,
         campanha.limiteDiario,
+        limiteSolicitado,
+        limit,
         resumo.enviadosHoje,
         vagasRestantes,
+        throttle,
       ),
       dryRun: false,
       envioRealExecutado: true,
@@ -218,39 +295,74 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
       totalFalhas: resultados.filter(
         (resultado) => resultado.status === "falha",
       ).length,
-      resultados,
+      totalRateLimit,
+      resultadosPreview: resultados.slice(0, RESULTS_PREVIEW_LIMIT),
+      resultados: includeResults ? resultados : [],
     };
   }
 
   private buildMeta(
+    nome: string,
     limiteDiario: number,
+    limiteSolicitado: number,
+    limiteEfetivo: number,
     enviadosHoje: number,
-    vagasRestantes: number,
+    vagasRestantesAntes: number,
+    throttle: ReturnType<
+      EnviarCampanhaSindicatoDigitalUseCase["getThrottleConfig"]
+    >,
   ): CampanhaEnvioMeta {
     return {
-      campanha: CAMPANHA_CODIGO,
+      campanha: {
+        codigo: CAMPANHA_CODIGO,
+        nome,
+        limiteDiario,
+      },
       template: TEMPLATE_ID,
       filtroObrigatorio: { grupo: REQUIRED_GROUP },
-      limiteDiario,
-      enviadosHoje,
-      vagasRestantes,
+      limiteSolicitado,
+      limiteEfetivo,
+      enviadosHojeAntes: enviadosHoje,
+      vagasRestantesAntes,
+      throttle: {
+        batchSize: throttle.batchSize,
+        batchIntervalMs: throttle.batchIntervalMs,
+        sendIntervalMs: throttle.sendIntervalMs,
+        retryMaxAttempts: throttle.retryMaxAttempts,
+      },
     };
   }
 
-  private normalizeLimit(limit?: number): number {
+  private normalizeRequestedLimit(limit?: number): number {
     if (limit === undefined || Number.isNaN(limit)) {
       return DEFAULT_LIMIT;
     }
 
-    return Math.min(Math.max(limit, 1), MAX_LIMIT);
+    return Math.max(Math.floor(limit), 1);
   }
 
-  private canSendReal(dryRun: boolean, confirmacao?: string): boolean {
+  private normalizeEffectiveLimit(
+    requestedLimit: number,
+    vagasRestantes: number,
+  ): number {
+    return Math.min(
+      requestedLimit,
+      vagasRestantes,
+      this.readInt("EMAIL_MAX_REQUEST_LIMIT", DEFAULT_MAX_REQUEST_LIMIT),
+    );
+  }
+
+  private canSendReal(
+    dryRun: boolean,
+    confirmacao: string | undefined,
+    campanhaStatus: string,
+  ): boolean {
     return (
       process.env.EMAIL_SENDING_ENABLED === "true" &&
       process.env.EMAIL_DRY_RUN === "false" &&
       dryRun === false &&
-      confirmacao === "ENVIAR"
+      confirmacao === "ENVIAR" &&
+      campanhaStatus === "ativa"
     );
   }
 
@@ -309,6 +421,71 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     }
 
     return "Falha ao processar destinatario.";
+  }
+
+  private async registrarFalha(
+    campanhaId: string,
+    destinatario: SindicatoEntity,
+    erro: string,
+    resultados: ResultadoEnvio[],
+  ): Promise<void> {
+    await this.destinatariosRepository.registrarResultado({
+      campanhaId,
+      sindicatoId: destinatario.id,
+      email: destinatario.email,
+      status: "falhou",
+      erro,
+    });
+
+    resultados.push({
+      id: destinatario.id,
+      emailMascarado: this.maskEmail(destinatario.email),
+      status: "falha",
+      erro,
+    });
+  }
+
+  private getThrottleConfig(): {
+    batchSize: number;
+    batchIntervalMs: number;
+    sendIntervalMs: number;
+    retryMaxAttempts: number;
+    stopOnRateLimit: boolean;
+  } {
+    return {
+      batchSize: this.readInt("EMAIL_BATCH_SIZE", DEFAULT_BATCH_SIZE),
+      batchIntervalMs: this.readInt(
+        "EMAIL_BATCH_INTERVAL_MS",
+        DEFAULT_BATCH_INTERVAL_MS,
+      ),
+      sendIntervalMs: this.readInt(
+        "EMAIL_SEND_INTERVAL_MS",
+        DEFAULT_SEND_INTERVAL_MS,
+      ),
+      retryMaxAttempts: this.readInt("EMAIL_RETRY_MAX_ATTEMPTS", 5),
+      stopOnRateLimit: process.env.EMAIL_STOP_ON_RATE_LIMIT === "true",
+    };
+  }
+
+  private chunk<T>(items: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+
+    for (let index = 0; index < items.length; index += size) {
+      chunks.push(items.slice(index, index + size));
+    }
+
+    return chunks;
+  }
+
+  private readInt(envName: string, fallback: number): number {
+    const value = Number(process.env[envName]);
+    return Number.isInteger(value) && value > 0 ? value : fallback;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
   private maskEmail(email: string): string {

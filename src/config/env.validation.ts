@@ -7,6 +7,25 @@ export interface PlannedEnv {
   EMAIL_SENDING_ENABLED: string;
   EMAIL_DRY_RUN: string;
   EMAIL_REQUIRE_CONFIRMATION: string;
+  EMAIL_DAILY_LIMIT: string;
+  EMAIL_MAX_REQUEST_LIMIT: string;
+  EMAIL_BATCH_SIZE: string;
+  EMAIL_BATCH_INTERVAL_MS: string;
+  EMAIL_SEND_INTERVAL_MS: string;
+  EMAIL_RETRY_MAX_ATTEMPTS: string;
+  EMAIL_RETRY_BASE_DELAY_MS: string;
+  EMAIL_RETRY_MAX_DELAY_MS: string;
+  EMAIL_STOP_ON_RATE_LIMIT: string;
 }
 
-// Validacao completa de ambiente sera implementada em fase futura.
+export const emailEnvDefaults = {
+  EMAIL_DAILY_LIMIT: "1000",
+  EMAIL_MAX_REQUEST_LIMIT: "1000",
+  EMAIL_BATCH_SIZE: "10",
+  EMAIL_BATCH_INTERVAL_MS: "60000",
+  EMAIL_SEND_INTERVAL_MS: "7000",
+  EMAIL_RETRY_MAX_ATTEMPTS: "5",
+  EMAIL_RETRY_BASE_DELAY_MS: "30000",
+  EMAIL_RETRY_MAX_DELAY_MS: "300000",
+  EMAIL_STOP_ON_RATE_LIMIT: "false",
+} as const;

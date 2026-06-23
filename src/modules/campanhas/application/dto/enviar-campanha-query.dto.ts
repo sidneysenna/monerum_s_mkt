@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   Length,
-  Max,
   Min,
 } from "class-validator";
 
@@ -56,13 +55,17 @@ export class EnviarCampanhaQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(100)
   limit?: number;
 
   @IsOptional()
   @Transform(toBoolean)
   @IsBoolean()
   dryRun?: boolean;
+
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  includeResults?: boolean;
 
   @IsOptional()
   @IsString()

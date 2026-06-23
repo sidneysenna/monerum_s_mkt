@@ -68,13 +68,13 @@ http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/preview
 Dry-run de envio:
 
 ```bash
-curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=100"
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?limit=1000"
 ```
 
 Envio real controlado, somente se configurado:
 
 ```bash
-curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?uf=MG&limit=100&dryRun=false&confirmacao=ENVIAR"
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?limit=50&dryRun=false&confirmacao=ENVIAR"
 ```
 
 ## Scripts operacionais
@@ -185,7 +185,14 @@ MAILGUN_FROM_EMAIL=
 EMAIL_SENDING_ENABLED=false
 EMAIL_DRY_RUN=true
 EMAIL_BATCH_SIZE=10
-EMAIL_BATCH_INTERVAL_MS=1000
+EMAIL_BATCH_INTERVAL_MS=60000
+EMAIL_DAILY_LIMIT=1000
+EMAIL_MAX_REQUEST_LIMIT=1000
+EMAIL_SEND_INTERVAL_MS=7000
+EMAIL_RETRY_MAX_ATTEMPTS=5
+EMAIL_RETRY_BASE_DELAY_MS=30000
+EMAIL_RETRY_MAX_DELAY_MS=300000
+EMAIL_STOP_ON_RATE_LIMIT=false
 EMAIL_REQUIRE_CONFIRMATION=true
 ```
 
@@ -210,9 +217,23 @@ Envio real fica bloqueado por padrao. Para enviar de verdade, todas as condicoes
 - `EMAIL_DRY_RUN=false`
 - request com `dryRun=false`
 - request com `confirmacao=ENVIAR`
-- limite maximo de `10` destinatarios nesta etapa
+- campanha ativa
+- destinatario ainda nao enviado na campanha
+- limite diario disponivel
 
 Sem todas essas condicoes, o endpoint retorna apenas dry-run e nao chama Mailgun.
+
+O envio real aplica throttle e retry para reduzir 429 do Mailgun:
+
+- `EMAIL_SEND_INTERVAL_MS`: pausa entre envios individuais, default `7000`.
+- `EMAIL_BATCH_SIZE`: tamanho do lote interno, default `10`.
+- `EMAIL_BATCH_INTERVAL_MS`: pausa entre lotes, default `60000`.
+- `EMAIL_RETRY_MAX_ATTEMPTS`: tentativas por destinatario, default `5`.
+- `EMAIL_RETRY_BASE_DELAY_MS`: backoff inicial, default `30000`.
+- `EMAIL_RETRY_MAX_DELAY_MS`: backoff maximo, default `300000`.
+- `EMAIL_STOP_ON_RATE_LIMIT`: se `true`, interrompe ao receber 429; default `false`.
+
+Quando o Mailgun retorna `Retry-After`, a retentativa respeita esse valor. Sem `Retry-After`, o sistema usa backoff exponencial com jitter simples. Volumes altos, como `limit=1000`, continuam sincronizados nesta etapa e podem demorar bastante; a evolucao recomendada e mover o processamento para worker com BullMQ/Redis.
 
 ## Campanha inicial
 
@@ -267,7 +288,7 @@ nome: CAMPANHA 001 - Consciência do problema e apresentando Monerum-S
 slug: consciencia-problema-apresentando-monerum-s
 template: proposta-sindicato-digital
 status: ativa
-limite_diario: 100
+limite_diario: 1000
 ```
 
 O endpoint temporario antigo continua funcionando:
@@ -276,7 +297,7 @@ O endpoint temporario antigo continua funcionando:
 POST /api/v1/campanhas/proposta-sindicato-digital/enviar
 ```
 
-Internamente, ele usa `CAMPANHA_001`, respeita limite diario de 100 e exclui sindicatos que ja tenham registro `enviado` para essa campanha. Dry-run nao grava status `enviado` e nao bloqueia destinatarios futuros.
+Internamente, ele usa `CAMPANHA_001`, respeita limite diario de 1000 e exclui sindicatos que ja tenham registro `enviado` para essa campanha. Dry-run nao grava status `enviado` e nao bloqueia destinatarios futuros. O parametro `limit` define a quantidade solicitada por requisicao e e limitado por `EMAIL_MAX_REQUEST_LIMIT`.
 
 Consultas:
 
@@ -284,6 +305,7 @@ Consultas:
 curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/status"
 curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/destinatarios?status=enviado&limit=100"
 curl "http://localhost:3000/api/v1/campanhas/CAMPANHA_001/elegiveis?uf=MG&limit=100"
+curl -X POST "http://localhost:3000/api/v1/campanhas/proposta-sindicato-digital/enviar?limit=1000&dryRun=false&confirmacao=ENVIAR"
 ```
 
 Os endpoints publicos retornam e-mail mascarado. Toda selecao de elegiveis aplica `grupo = 'Trabalhador'`, exige e-mail preenchido e exclui apenas sindicatos ja enviados para a mesma campanha.

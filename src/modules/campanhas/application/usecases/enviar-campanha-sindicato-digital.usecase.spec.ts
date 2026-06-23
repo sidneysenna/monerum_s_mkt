@@ -10,12 +10,12 @@ class FakeCampanhasRepository {
     "CAMPANHA 001 - Consciência do problema e apresentando Monerum-S",
     "proposta-sindicato-digital",
     "ativa",
-    100,
+    1000,
   );
   resumo = {
     totalEnviados: 0,
     enviadosHoje: 0,
-    vagasRestantesHoje: 100,
+    vagasRestantesHoje: 1000,
     totalFalhas: 0,
   };
   params?: unknown;
@@ -49,9 +49,19 @@ class FakeCampanhasRepository {
 
 describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
   const originalEnv = process.env;
+  const retrySuccess = {
+    execute: jest.fn(async (operation: () => Promise<unknown>) => ({
+      ok: true,
+      value: await operation(),
+      attempts: 1,
+      rateLimit: false,
+    })),
+  };
 
   afterEach(() => {
     process.env = originalEnv;
+    jest.useRealTimers();
+    jest.clearAllMocks();
   });
 
   it("bloqueia envio real por padrao e nao chama Mailgun nem grava enviado", async () => {
@@ -72,11 +82,12 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       destinatariosRepository as never,
       templateRenderer as never,
       enviarEmailService as never,
+      retrySuccess as never,
     );
 
     const result = await useCase.execute({});
 
-    expect(result.campanha).toBe("CAMPANHA_001");
+    expect(result.campanha.codigo).toBe("CAMPANHA_001");
     expect(result.dryRun).toBe(true);
     expect(result.envioRealExecutado).toBe(false);
     if (result.dryRun === true) {
@@ -93,7 +104,7 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
     expect(destinatariosRepository.registrarResultado).not.toHaveBeenCalled();
   });
 
-  it("respeita limite diario de 100 e limita a vagas restantes", async () => {
+  it("respeita limite diario de 1000 e limita a vagas restantes", async () => {
     const campanhasRepository = new FakeCampanhasRepository();
     campanhasRepository.resumo = {
       totalEnviados: 250,
@@ -106,9 +117,10 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       { registrarResultado: jest.fn() } as never,
       {} as never,
       { enviar: jest.fn() } as never,
+      retrySuccess as never,
     );
 
-    await useCase.execute({ limit: 100 });
+    await useCase.execute({ limit: 1000 });
 
     expect(campanhasRepository.params).toEqual(
       expect.objectContaining({
@@ -121,8 +133,8 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
   it("nao seleciona destinatarios quando limite diario foi atingido", async () => {
     const campanhasRepository = new FakeCampanhasRepository();
     campanhasRepository.resumo = {
-      totalEnviados: 100,
-      enviadosHoje: 100,
+      totalEnviados: 1000,
+      enviadosHoje: 1000,
       vagasRestantesHoje: 0,
       totalFalhas: 0,
     };
@@ -131,14 +143,15 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       { registrarResultado: jest.fn() } as never,
       {} as never,
       { enviar: jest.fn() } as never,
+      retrySuccess as never,
     );
 
-    const result = await useCase.execute({ limit: 100 });
+    const result = await useCase.execute({ limit: 1000 });
 
     expect(result.dryRun).toBe(true);
     if (result.dryRun) {
       expect(result.motivo).toBe("limite_diario_atingido");
-      expect(result.destinatariosEncontrados).toBe(0);
+      expect(result.destinatariosElegiveis).toBe(0);
     }
     expect(campanhasRepository.params).toBeUndefined();
   });
@@ -149,6 +162,7 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       EMAIL_SENDING_ENABLED: "true",
       EMAIL_DRY_RUN: "false",
       MAILGUN_FROM_EMAIL: "nao-responder@example.com",
+      EMAIL_SEND_INTERVAL_MS: "1",
     };
     const campanhasRepository = new FakeCampanhasRepository();
     campanhasRepository.sindicatos = [
@@ -194,6 +208,7 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       destinatariosRepository as never,
       templateRenderer as never,
       enviarEmailService as never,
+      retrySuccess as never,
     );
 
     await useCase.execute({ dryRun: false, confirmacao: "ENVIAR", limit: 2 });
@@ -226,6 +241,7 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
       EMAIL_SENDING_ENABLED: "true",
       EMAIL_DRY_RUN: "false",
       MAILGUN_FROM_EMAIL: "nao-responder@example.com",
+      EMAIL_SEND_INTERVAL_MS: "1",
     };
     const campanhasRepository = new FakeCampanhasRepository();
     const destinatariosRepository = {
@@ -242,10 +258,15 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
         })),
         validateNoUnresolvedPlaceholders: jest.fn(),
       } as never,
+      { enviar: jest.fn() } as never,
       {
-        enviar: jest.fn(async () => {
-          throw new Error("Mailgun indisponivel");
-        }),
+        execute: jest.fn(async () => ({
+          ok: false,
+          error: new Error("Mailgun indisponivel"),
+          attempts: 1,
+          rateLimit: false,
+          sanitizedError: "falha_envio_email",
+        })),
       } as never,
     );
 
@@ -262,6 +283,241 @@ describe("EnviarCampanhaSindicatoDigitalUseCase", () => {
     expect(result.dryRun).toBe(false);
     if (result.dryRun === false) {
       expect(result.totalFalhas).toBe(1);
+    }
+  });
+
+  it("aceita limit 1000 e limita por EMAIL_MAX_REQUEST_LIMIT quando configurado", async () => {
+    process.env = {
+      ...originalEnv,
+      EMAIL_MAX_REQUEST_LIMIT: "50",
+    };
+    const campanhasRepository = new FakeCampanhasRepository();
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      campanhasRepository as never,
+      { registrarResultado: jest.fn() } as never,
+      {} as never,
+      { enviar: jest.fn() } as never,
+      retrySuccess as never,
+    );
+
+    const result = await useCase.execute({ limit: 1000 });
+
+    expect(campanhasRepository.params).toEqual(
+      expect.objectContaining({ limit: 50 }),
+    );
+    expect(result.limiteSolicitado).toBe(1000);
+    expect(result.limiteEfetivo).toBe(50);
+  });
+
+  it("dry-run nao aplica delay e nao chama Mailgun", async () => {
+    jest.useFakeTimers();
+    process.env = {
+      ...originalEnv,
+      EMAIL_SEND_INTERVAL_MS: "7000",
+      EMAIL_BATCH_INTERVAL_MS: "60000",
+    };
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.sindicatos = [
+      campanhasRepository.sindicatos[0],
+      new SindicatoEntity(
+        456,
+        null,
+        "Sindicato B",
+        null,
+        "SP",
+        "Sao Paulo",
+        "b@example.com",
+        "Jose",
+        "Trabalhador",
+      ),
+    ];
+    const enviarEmailService = { enviar: jest.fn() };
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      campanhasRepository as never,
+      { registrarResultado: jest.fn() } as never,
+      {
+        render: jest.fn(),
+        validateNoUnresolvedPlaceholders: jest.fn(),
+      } as never,
+      enviarEmailService as never,
+      retrySuccess as never,
+    );
+
+    await useCase.execute({ limit: 2 });
+
+    expect(jest.getTimerCount()).toBe(0);
+    expect(enviarEmailService.enviar).not.toHaveBeenCalled();
+  });
+
+  it("envio real aplica delay entre destinatarios e pausa entre lotes", async () => {
+    jest.useFakeTimers();
+    process.env = {
+      ...originalEnv,
+      EMAIL_SENDING_ENABLED: "true",
+      EMAIL_DRY_RUN: "false",
+      MAILGUN_FROM_EMAIL: "nao-responder@example.com",
+      EMAIL_SEND_INTERVAL_MS: "100",
+      EMAIL_BATCH_SIZE: "2",
+      EMAIL_BATCH_INTERVAL_MS: "500",
+    };
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.sindicatos = [1, 2, 3].map(
+      (id) =>
+        new SindicatoEntity(
+          id,
+          null,
+          `Sindicato ${id}`,
+          null,
+          "MG",
+          "Belo Horizonte",
+          `${id}@example.com`,
+          "Nome",
+          "Trabalhador",
+        ),
+    );
+    const enviarEmailService = {
+      enviar: jest.fn(async () => ({ providerMessageId: "mg-id" })),
+    };
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      campanhasRepository as never,
+      {
+        registrarResultado: jest.fn(async () => ({ id: "registro-id" })),
+      } as never,
+      {
+        render: jest.fn(async () => ({
+          subject: "Assunto",
+          html: "<p>ok</p>",
+          text: "ok",
+        })),
+        validateNoUnresolvedPlaceholders: jest.fn(),
+      } as never,
+      enviarEmailService as never,
+      retrySuccess as never,
+    );
+
+    const promise = useCase.execute({
+      dryRun: false,
+      confirmacao: "ENVIAR",
+      limit: 3,
+    });
+
+    await jest.advanceTimersByTimeAsync(100);
+    await jest.advanceTimersByTimeAsync(100);
+    await jest.advanceTimersByTimeAsync(500);
+    const result = await promise;
+
+    expect(enviarEmailService.enviar).toHaveBeenCalledTimes(3);
+    expect(result.dryRun).toBe(false);
+    if (result.dryRun === false) {
+      expect(result.totalEnviados).toBe(3);
+    }
+  });
+
+  it("continua campanha apos falha individual", async () => {
+    process.env = {
+      ...originalEnv,
+      EMAIL_SENDING_ENABLED: "true",
+      EMAIL_DRY_RUN: "false",
+      MAILGUN_FROM_EMAIL: "nao-responder@example.com",
+      EMAIL_SEND_INTERVAL_MS: "1",
+    };
+    const campanhasRepository = new FakeCampanhasRepository();
+    campanhasRepository.sindicatos = [1, 2].map(
+      (id) =>
+        new SindicatoEntity(
+          id,
+          null,
+          `Sindicato ${id}`,
+          null,
+          "MG",
+          "Belo Horizonte",
+          `${id}@example.com`,
+          "Nome",
+          "Trabalhador",
+        ),
+    );
+    const retry = {
+      execute: jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: false,
+          attempts: 5,
+          rateLimit: true,
+          sanitizedError: "rate_limit_429",
+        })
+        .mockImplementationOnce(async (operation: () => Promise<unknown>) => ({
+          ok: true,
+          value: await operation(),
+          attempts: 1,
+          rateLimit: false,
+        })),
+    };
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      campanhasRepository as never,
+      {
+        registrarResultado: jest.fn(async () => ({ id: "registro-id" })),
+      } as never,
+      {
+        render: jest.fn(async () => ({
+          subject: "Assunto",
+          html: "<p>ok</p>",
+          text: "ok",
+        })),
+        validateNoUnresolvedPlaceholders: jest.fn(),
+      } as never,
+      {
+        enviar: jest.fn(async () => ({ providerMessageId: "mg-id" })),
+      } as never,
+      retry as never,
+    );
+
+    const result = await useCase.execute({
+      dryRun: false,
+      confirmacao: "ENVIAR",
+      limit: 2,
+    });
+
+    expect(result.dryRun).toBe(false);
+    if (result.dryRun === false) {
+      expect(result.totalFalhas).toBe(1);
+      expect(result.totalEnviados).toBe(1);
+      expect(result.totalRateLimit).toBe(1);
+    }
+  });
+
+  it("marca ja_enviado quando repository retorna duplicidade", async () => {
+    process.env = {
+      ...originalEnv,
+      EMAIL_SENDING_ENABLED: "true",
+      EMAIL_DRY_RUN: "false",
+      MAILGUN_FROM_EMAIL: "nao-responder@example.com",
+    };
+    const useCase = new EnviarCampanhaSindicatoDigitalUseCase(
+      new FakeCampanhasRepository() as never,
+      { registrarResultado: jest.fn(async () => null) } as never,
+      {
+        render: jest.fn(async () => ({
+          subject: "Assunto",
+          html: "<p>ok</p>",
+          text: "ok",
+        })),
+        validateNoUnresolvedPlaceholders: jest.fn(),
+      } as never,
+      {
+        enviar: jest.fn(async () => ({ providerMessageId: "mg-id" })),
+      } as never,
+      retrySuccess as never,
+    );
+
+    const result = await useCase.execute({
+      dryRun: false,
+      confirmacao: "ENVIAR",
+      includeResults: true,
+    });
+
+    expect(result.dryRun).toBe(false);
+    if (result.dryRun === false) {
+      expect(result.resultados[0].status).toBe("ja_enviado");
     }
   });
 });

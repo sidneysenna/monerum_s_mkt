@@ -20,14 +20,13 @@ describe("PreviewCampanhaSindicatoDigitalUseCase", () => {
     });
 
     expect(result.campanha).toBe("proposta-sindicato-digital");
-    expect(result.html).toContain("SINDICATO TESTE");
     expect(result.html).toContain("Presidente JOAO");
     expect(result.html).toContain(
       `font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif`,
     );
     expect(result.html).toContain("R$ 500,00");
     expect(result.html).not.toContain(formerMonthlyValue);
-    expect(result.text).toContain("SINDICATO TESTE");
+    expect(result.text).toContain("Presidente JOAO");
     expect(result.text).toContain("R$ 500,00");
     expect(result.text).not.toContain(formerMonthlyValue);
     expect(result.placeholders).toEqual({

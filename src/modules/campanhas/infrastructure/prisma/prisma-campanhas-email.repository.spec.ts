@@ -17,6 +17,8 @@ describe("PrismaCampanhasEmailRepository", () => {
     const sql = queryRaw.mock.calls[0][0].strings.join(" ");
 
     expect(sql).toContain("s.grupo = 'Trabalhador'");
+    expect(sql).toContain("FROM sindicatos_br.sindicatos s");
+    expect(sql).not.toContain("public.");
     expect(sql).toContain("NOT EXISTS");
     expect(sql).toContain("ced.status = 'enviado'");
     expect(sql).toContain("ce.codigo =");

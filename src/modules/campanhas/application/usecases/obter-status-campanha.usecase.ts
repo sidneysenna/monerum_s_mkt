@@ -14,7 +14,10 @@ export class ObterStatusCampanhaUseCase {
   ) {}
 
   async execute(codigo: string): Promise<CampanhaStatusResponseDto> {
-    const campanha = await this.campanhasRepository.obterPorCodigo(codigo);
+    const campanha =
+      codigo === "CAMPANHA_001"
+        ? await this.campanhasRepository.garantirCampanhaInicial()
+        : await this.campanhasRepository.obterPorCodigo(codigo);
 
     if (!campanha) {
       throw new NotFoundException(`Campanha nao encontrada: ${codigo}.`);

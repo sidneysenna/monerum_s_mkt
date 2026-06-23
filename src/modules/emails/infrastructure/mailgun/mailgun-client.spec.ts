@@ -1,4 +1,5 @@
 import { MailgunClient } from "./mailgun-client";
+import { MailgunRateLimitError } from "./mailgun.errors";
 
 describe("MailgunClient", () => {
   const originalEnv = process.env;
@@ -45,5 +46,46 @@ describe("MailgunClient", () => {
         body: expect.any(URLSearchParams),
       }),
     );
+  });
+
+  it("gera MailgunRateLimitError para status 429 com Retry-After", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      headers: {
+        get: jest.fn((name: string) =>
+          name.toLowerCase() === "retry-after" ? "60" : null,
+        ),
+      },
+      text: async () => "Too many requests",
+    } as unknown as Response);
+    const client = new MailgunClient();
+
+    await expect(
+      client.sendMessage({
+        from: "Monerum <contato@example.com>",
+        to: "destino@example.com",
+        subject: "Assunto",
+        text: "Texto",
+        html: "<p>Texto</p>",
+      }),
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "MailgunRateLimitError",
+        statusCode: 429,
+        retryAfterSeconds: 60,
+        responseBody: "Too many requests",
+      }),
+    );
+
+    await expect(
+      client.sendMessage({
+        from: "Monerum <contato@example.com>",
+        to: "destino@example.com",
+        subject: "Assunto",
+        text: "Texto",
+        html: "<p>Texto</p>",
+      }),
+    ).rejects.toBeInstanceOf(MailgunRateLimitError);
   });
 });
