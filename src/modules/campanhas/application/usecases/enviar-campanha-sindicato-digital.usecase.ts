@@ -33,7 +33,7 @@ const FIXED_PLACEHOLDERS = {
   VALOR_TAXA: "10",
   CONTATO_WHATSAPP: "5531984791973",
   VENDEDOR_NOME: "SIDNEY SENNA",
-  VENDEDOR_CONTATO: "sidney.senna@supremaalgoritmos.com.br",
+  VENDEDOR_CONTATO: "(31) 98479-1973 / sidney.senna@supremaalgoritmos.com.br",
 } as const;
 
 interface DestinatarioDryRun {
@@ -146,6 +146,9 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
     const resultados: ResultadoEnvio[] = [];
 
     for (const destinatario of destinatarios) {
+      
+      console.log('DESTINATARIO:', destinatario);
+
       try {
         const template = await this.templateRenderer.render(
           TEMPLATE_ID,
@@ -182,6 +185,7 @@ export class EnviarCampanhaSindicatoDigitalUseCase {
           erro: registro ? undefined : "Destinatario ja registrado como enviado.",
         });
       } catch (error) {
+        console.error(error);
         await this.destinatariosRepository.registrarResultado({
           campanhaId: campanha.id,
           sindicatoId: destinatario.id,
